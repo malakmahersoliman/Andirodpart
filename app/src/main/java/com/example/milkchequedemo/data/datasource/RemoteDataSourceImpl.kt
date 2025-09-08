@@ -1,5 +1,6 @@
 package com.example.milkchequedemo.data.datasource
 
+import com.example.milkchequedemo.data.dto.MenuItemDto
 import com.example.milkchequedemo.data.dto.StoreInfoResponseDto
 import com.example.milkchequedemo.data.service.StoreApi
 import retrofit2.Response
@@ -12,4 +13,6 @@ class RemoteDataSourceImpl @Inject constructor(
         storeId: Int,
         tableId: Int
     ): Response<StoreInfoResponseDto> = storeApi.getStoreInfo(storeId, tableId)
+
+    override suspend fun getMenu(): Response<List<MenuItemDto>> = storeApi.getMenu()
 }

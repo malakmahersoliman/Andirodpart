@@ -1,5 +1,6 @@
-package com.example.milkchequedemo.data.dto
+package com.example.milkchequedemo.data.mapper
 
+import com.example.milkchequedemo.data.dto.StoreInfoResponseDto
 import com.example.milkchequedemo.domain.model.StoreInfo
 
 fun StoreInfoResponseDto.toDomain(): StoreInfo {

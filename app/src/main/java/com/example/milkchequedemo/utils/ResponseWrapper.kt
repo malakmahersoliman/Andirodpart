@@ -7,6 +7,7 @@ sealed class ResponseWrapper<out T>{
         val data:T?
     ): ResponseWrapper<T>()
     data class Error(
-        val message:String
+        val message: String,
+        val code: Int
     ): ResponseWrapper<Nothing>()
 }

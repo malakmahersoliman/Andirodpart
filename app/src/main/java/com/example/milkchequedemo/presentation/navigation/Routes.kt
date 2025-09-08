@@ -12,8 +12,17 @@
 
 
 package com.example.milkchequedemo.presentation.navigation
+
 object Routes {
     const val Scan = "scanS"
+
     const val Welcome = "welcome/{storeId}/{tableId}"
     fun welcome(storeId: Int, tableId: Int) = "welcome/$storeId/$tableId"
+
+    const val Menu = "menu/{storeId}"
+    fun menu(storeId: Int) = "menu/$storeId"
+
+    // NEW
+    const val Description = "description/{storeId}/{productId}"
+    fun description(storeId: Int, productId: String) = "description/$storeId/$productId"
 }

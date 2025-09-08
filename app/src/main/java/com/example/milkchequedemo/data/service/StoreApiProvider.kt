@@ -10,7 +10,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object StoreApiProvider {
     private const val BASE_URL =
-        "https://milkchequewebapp-d4fuf2edfbc5g5hq.spaincentral-01.azurewebsites.net/"
+        "https://milkchequeapp-fzemegbdh9hgbkhf.spaincentral-01.azurewebsites.net/"
 
     private val logging = HttpLoggingInterceptor { msg ->
         Log.d("HTTP", msg)

@@ -18,4 +18,8 @@ abstract class DataModule {
 
     @Binds @Singleton
     abstract fun bindStoreRepository(impl: StoreRepositoryImpl): StoreRepository
+
+    @Binds @Singleton
+    abstract fun bindMenuRepository(impl: com.example.milkchequedemo.data.repositoryImpl.MenuRepositoryImpl)
+            : com.example.milkchequedemo.domain.repository.MenuRepository
 }

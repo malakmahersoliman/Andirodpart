@@ -103,37 +103,77 @@
 //@Composable private fun NewPasswordScreenStub(onDone: () -> Unit) { /* TODO */ }
 
 
+// presentation/navigation/AppNavGraph.kt
 package com.example.milkchequedemo.presentation.navigation
 
-import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavType
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.example.milkchequedemo.presentation.menu.MenuRoute
+import com.example.milkchequedemo.presentation.description.DescriptionRoute
 import com.example.milkchequedemo.presentation.screens.ScanOrderScreen
 import com.example.milkchequedemo.presentation.screens.WelcomeScreen
-import com.example.milkchequedemo.presentation.viewmodel.WelcomeViewModel
 
 @Composable
 fun AppNavGraph(navController: NavHostController) {
     NavHost(navController, startDestination = Routes.Scan) {
+
+        // 1) Scan → emits a route; navigate to Welcome with IDs
         composable(Routes.Scan) {
             ScanOrderScreen { route -> navController.navigate(route) }
+            // Your Scan screen should call nav with Routes.welcome(storeId, tableId)
         }
+
+        // 2) Welcome → Continue -> Menu(storeId)
         composable(
             route = Routes.Welcome,
             arguments = listOf(
                 navArgument("storeId") { type = NavType.IntType },
                 navArgument("tableId") { type = NavType.IntType }
             )
-        ) { backStackEntry ->
-            val storeId = backStackEntry.arguments!!.getInt("storeId")
-            val tableId = backStackEntry.arguments!!.getInt("tableId")
-            WelcomeScreen(storeId = storeId, tableId = tableId)
+        ) { backStack ->
+            val storeId = backStack.arguments?.getInt("storeId") ?: return@composable
+            val tableId = backStack.arguments?.getInt("tableId") ?: return@composable
+
+            WelcomeScreen(
+                storeId = storeId,
+                tableId = tableId,
+                onContinue = {
+                    navController.navigate(Routes.menu(storeId)) {
+                        popUpTo(Routes.Welcome) { inclusive = true } // drop Welcome
+                        launchSingleTop = true
+                    }
+                }
+            )
+        }
+
+        // 3) Menu -> shows list from API; tap → Description
+        composable(
+            route = Routes.Menu,
+            arguments = listOf(navArgument("storeId") { type = NavType.IntType })
+        ) { backStack ->
+            val storeId = backStack.arguments!!.getInt("storeId")
+
+            MenuRoute(
+                onOpenProduct = { productId ->
+                    navController.navigate(Routes.description(storeId, productId))
+                },
+                onViewCart = { /* navController.navigate("cart") */ }
+            )
+        }
+
+        // 4) Description (product details)
+        composable(
+            route = Routes.Description,
+            arguments = listOf(
+                navArgument("storeId") { type = NavType.IntType },
+                navArgument("productId") { type = NavType.StringType }
+            )
+        ) {
+            DescriptionRoute(onBack = { navController.popBackStack() })
         }
     }
 }
