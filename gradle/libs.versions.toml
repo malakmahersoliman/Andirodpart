@@ -1,5 +1,6 @@
 [versions]
 agp = "8.6.1"
+coilCompose = "2.7.0"
 converterGson = "2.11.0"
 hiltNavigationCompose = "1.2.0"
 kotlin = "2.0.20"
@@ -57,6 +58,7 @@ androidx-camera-extensions = { module = "androidx.camera:camera-extensions", ver
 barcode-scanning = "com.google.mlkit:barcode-scanning:17.2.0"
 
 # Retrofit / OkHttp / Serialization
+coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttpVersion" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }

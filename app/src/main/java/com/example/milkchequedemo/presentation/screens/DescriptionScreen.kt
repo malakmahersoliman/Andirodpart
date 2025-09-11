@@ -1,5 +1,6 @@
 package com.example.milkchequedemo.presentation.screens
 
+import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.BorderStroke
@@ -49,7 +50,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.milkchequedemo.R
+import com.example.milkchequedemo.domain.model.MenuItem
 import com.example.milkchequedemo.presentation.components.ReusableButton
 import com.example.milkchequedemo.ui.theme.MexicanRed
 
@@ -87,6 +90,7 @@ data class AddOnUI(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DescriptionScreen(
+    item: MenuItem,
     state: DescriptionUiState,
     onBack: () -> Unit = {},
     onSelectSize: (id: String) -> Unit = {},
@@ -94,7 +98,8 @@ fun DescriptionScreen(
     onDecQty: () -> Unit = {},
     onIncQty: () -> Unit = {},
     onDelete: () -> Unit = {},
-    onAddToCart: () -> Unit = {}
+    onAddToCart: (Int) -> Unit = {},
+    showDialog:()-> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -114,7 +119,9 @@ fun DescriptionScreen(
                 totalText = state.totalText,
                 onDec = onDecQty, onInc = onIncQty,
                 onDelete = onDelete,
-                onAddToCart = onAddToCart
+                onAddToCart = onAddToCart,
+                item = item,
+                showDialog = showDialog
             )
         }
     ) { inner ->
@@ -128,9 +135,9 @@ fun DescriptionScreen(
         ) {
             item {
                 // Big image
-                Image(
-                    painter = painterResource(id = state.image),
-                    contentDescription = state.title,
+                AsyncImage(
+                    model = item.iconUrl,
+                    contentDescription = item.name,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(260.dp)
@@ -143,13 +150,13 @@ fun DescriptionScreen(
                 // Title + meta
                 Column {
                     Text(
-                        state.title,
+                        item.name,
                         fontSize = 24.sp,
                         fontWeight = FontWeight.ExtraBold
                     )
                     Spacer(Modifier.height(6.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(text = state.subtitle, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(text = item.description.toString(), color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Spacer(Modifier.width(12.dp))
                         Text("★ ${state.rating}", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
@@ -294,13 +301,15 @@ private fun SelectBox(checked: Boolean, onClick: () -> Unit) {
 
 @Composable
 private fun BottomBar(
+    showDialog:()-> Unit,
+    item: MenuItem,
     qty: Int,
     canDelete: Boolean,
     totalText: String,
     onDec: () -> Unit,
     onInc: () -> Unit,
     onDelete: () -> Unit,
-    onAddToCart: () -> Unit
+    onAddToCart: (Int) -> Unit
 ) {
     Surface(
         tonalElevation = 2.dp,
@@ -367,7 +376,9 @@ private fun BottomBar(
                         )
                     }
 
-                    IconButton(onClick = onInc, modifier = Modifier.size(40.dp)) {
+                    IconButton(onClick = {
+                        onInc()
+                    }, modifier = Modifier.size(40.dp)) {
                         Icon(Icons.Default.Add, contentDescription = "Increase", tint = MexicanRed)
                     }
                 }
@@ -377,8 +388,11 @@ private fun BottomBar(
 
             // --- CTA button with two-line label (keeps total always visible) ---
             ReusableButton(
-                text = "Add to Cart\n$totalText".lowercase(), // trick: stop uppercase from shouting
-                onClick = onAddToCart,
+                text = "Add to Cart\n${item.price*qty}".lowercase(), // trick: stop uppercase from shouting
+                onClick = {
+                    onAddToCart(qty)
+                    showDialog()
+                },
                 height = 52.dp,
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier.weight(1f)
@@ -417,6 +431,11 @@ private fun DescriptionPreview() {
         onDecQty = {},
         onIncQty = {},
         onDelete = {},
-        onAddToCart = {}
+        onAddToCart = {},
+        item = MenuItem(
+            id = 7117, name = "Deann Finley", price = 8.9, description = "magna", iconUrl = "https://www.google.com/#q=reprehendunt",
+
+        ),
+        showDialog = {}
     )
 }

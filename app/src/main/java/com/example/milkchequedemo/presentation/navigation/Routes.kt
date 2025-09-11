@@ -19,10 +19,15 @@ object Routes {
     const val Welcome = "welcome/{storeId}/{tableId}"
     fun welcome(storeId: Int, tableId: Int) = "welcome/$storeId/$tableId"
 
-    const val Menu = "menu/{storeId}"
-    fun menu(storeId: Int) = "menu/$storeId"
+    const val Menu = "menu/{storeId}/{tableId}"
+    fun menu(storeId: Int, tableId: Int) = "menu/$storeId/$tableId"
 
     // NEW
-    const val Description = "description/{storeId}/{productId}"
-    fun description(storeId: Int, productId: String) = "description/$storeId/$productId"
+    const val Description = "description/{item}/{storeId}/{tableId}"
+    fun description(item: String,storeId: Int, tableId: Int) = "description/$item/$storeId/$tableId"
+
+
+
+    const val Cart = "cart"
+    const val Order = "order"
 }

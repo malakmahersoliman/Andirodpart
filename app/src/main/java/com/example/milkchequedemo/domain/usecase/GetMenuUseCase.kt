@@ -8,5 +8,9 @@ import javax.inject.Inject
 class GetMenuUseCase @Inject constructor(
     private val repo: MenuRepository
 ) {
-    suspend operator fun invoke(): ResponseWrapper<List<MenuItem>> = repo.getMenu()
+    suspend operator fun invoke(storeId: Int,
+                                tableId: Int): ResponseWrapper<List<MenuItem>> = repo.getMenu(
+        storeId = storeId, tableId = tableId
+
+    )
 }

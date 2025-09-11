@@ -4,6 +4,10 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.milkchequedemo.R
+import com.example.milkchequedemo.domain.model.MyCart
+import com.example.milkchequedemo.domain.model.Session
+import com.example.milkchequedemo.domain.model.SessionResponse
+import com.example.milkchequedemo.domain.usecase.CreateSessionUseCase
 import com.example.milkchequedemo.domain.usecase.GetMenuItemUseCase
 import com.example.milkchequedemo.presentation.screens.AddOnUI
 import com.example.milkchequedemo.presentation.screens.DescriptionUiState
@@ -20,7 +24,8 @@ import java.util.Locale
 @HiltViewModel
 class DescriptionViewModel @Inject constructor(
     private val getMenuItem: GetMenuItemUseCase,
-    private val savedState: SavedStateHandle
+    private val savedState: SavedStateHandle,
+    private val sessionUseCase: CreateSessionUseCase
 ) : ViewModel() {
 
     // nav argument name must match in your route: "productId"
@@ -28,7 +33,11 @@ class DescriptionViewModel @Inject constructor(
         savedState.get<String>("productId")?.toLong()
     }.getOrNull() ?: 0L
 
-    private val _state = MutableStateFlow(DescriptionUiState())
+    private val _session: MutableStateFlow<SessionResponse?> = MutableStateFlow(null)
+            val session=_session
+    private val _state = MutableStateFlow(DescriptionUiState(
+        rating = "4.5",
+    ))
     val state: StateFlow<DescriptionUiState> = _state
 
     private val currencyFmt by lazy {
@@ -38,7 +47,7 @@ class DescriptionViewModel @Inject constructor(
     private var basePrice = 0.0
     private var qty = 1
 
-    init { load() }
+//    init { load() }
 
     private fun priceText(v: Double) =
         currencyFmt.format(v).replace("EGP", "L.E")
@@ -55,30 +64,21 @@ class DescriptionViewModel @Inject constructor(
 
     private fun total() = basePrice * qty
 
-    private fun load() = viewModelScope.launch {
-        when (val r = getMenuItem(productId)) {
+    fun load(
+        userName: String,
+        phone: String,
+        storeId: String,
+        tableId: String
+    ) = viewModelScope.launch {
+        when (val r=sessionUseCase(
+            Session(
+                userName = userName, phone = phone, storeId = storeId, tableId = tableId
+            )
+        )) {
             is ResponseWrapper.Success -> {
+                MyCart.name=userName
                 val item = r.data ?: return@launch
-                basePrice = item.price
-                qty = 1
-
-                _state.value = DescriptionUiState(
-                    title = item.name,
-                    subtitle = item.description.orEmpty(),
-                    rating = "4.5",
-                    image = pickImage(item.name), // still drawable-based
-                    sizes = listOf(
-                        SizeOptionUI("r", "Regular", priceText(item.price), true),
-                        SizeOptionUI("l", "Large",   priceText(item.price * 1.2), false)
-                    ),
-                    addOns = listOf(
-                        AddOnUI("a1", "Extra Cheese", "+10.00 L.E.", R.drawable.cheese, false),
-                        AddOnUI("a2", "Mushroom",     "+5.00 L.E.",  R.drawable.mushroom, false)
-                    ),
-                    qty = qty,
-                    totalText = priceText(total()),
-                    canDelete = true
-                )
+                _session.value=item
             }
             is ResponseWrapper.Error -> {
                 // TODO: expose error to UI if you want
@@ -86,6 +86,8 @@ class DescriptionViewModel @Inject constructor(
             else -> Unit
         }
     }
+
+
 
     // -------- public handlers used by the screen --------
     fun onInc() {

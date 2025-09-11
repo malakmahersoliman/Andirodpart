@@ -106,16 +106,28 @@
 // presentation/navigation/AppNavGraph.kt
 package com.example.milkchequedemo.presentation.navigation
 
+import android.util.Log
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.example.milkchequedemo.domain.model.MenuItem
 import com.example.milkchequedemo.presentation.menu.MenuRoute
 import com.example.milkchequedemo.presentation.description.DescriptionRoute
+import com.example.milkchequedemo.presentation.screens.CartScreen
+import com.example.milkchequedemo.presentation.screens.OrderTrackingScreen
 import com.example.milkchequedemo.presentation.screens.ScanOrderScreen
+import com.example.milkchequedemo.presentation.screens.SessionStartDialog
 import com.example.milkchequedemo.presentation.screens.WelcomeScreen
+import com.example.milkchequedemo.presentation.viewmodel.DescriptionViewModel
+import com.google.gson.Gson
 
 @Composable
 fun AppNavGraph(navController: NavHostController) {
@@ -142,7 +154,7 @@ fun AppNavGraph(navController: NavHostController) {
                 storeId = storeId,
                 tableId = tableId,
                 onContinue = {
-                    navController.navigate(Routes.menu(storeId)) {
+                    navController.navigate(Routes.menu(storeId,tableId)) {
                         popUpTo(Routes.Welcome) { inclusive = true } // drop Welcome
                         launchSingleTop = true
                     }
@@ -153,27 +165,88 @@ fun AppNavGraph(navController: NavHostController) {
         // 3) Menu -> shows list from API; tap → Description
         composable(
             route = Routes.Menu,
-            arguments = listOf(navArgument("storeId") { type = NavType.IntType })
+            arguments = listOf(navArgument("storeId") { type = NavType.IntType },
+                navArgument("tableId") { type = NavType.IntType },)
         ) { backStack ->
             val storeId = backStack.arguments!!.getInt("storeId")
+            val tableId = backStack.arguments!!.getInt("tableId")
 
             MenuRoute(
-                onOpenProduct = { productId ->
-                    navController.navigate(Routes.description(storeId, productId))
+                onOpenProduct = { item ->
+
+                    navController.navigate(Routes.description(Gson().toJson(
+                        item,
+                    ), storeId = storeId, tableId = tableId
+                    ))
                 },
-                onViewCart = { /* navController.navigate("cart") */ }
-            )
+                onViewCart = {  navController.navigate(Routes.Cart)  },
+                storeId = storeId,
+                tableId = tableId,
+
+                )
         }
 
         // 4) Description (product details)
         composable(
             route = Routes.Description,
             arguments = listOf(
+                navArgument("item") { type = NavType.StringType },
                 navArgument("storeId") { type = NavType.IntType },
-                navArgument("productId") { type = NavType.StringType }
+                navArgument("tableId") { type = NavType.IntType },
             )
-        ) {
-            DescriptionRoute(onBack = { navController.popBackStack() })
+        ) { backStack ->
+            val storeId = backStack.arguments!!.getInt("storeId")
+            val tableId = backStack.arguments!!.getInt("tableId")
+            val viewModel= hiltViewModel<DescriptionViewModel>()
+            val session=viewModel.session.collectAsState()
+            val showDialog= remember {
+                mutableStateOf(false)
+            }
+
+            if(session.value!=null){
+                showDialog.value=false
+            }
+
+            val item = Gson().fromJson(backStack.arguments!!.getString("item"), MenuItem::class.java)
+            DescriptionRoute(item=item,onBack = { navController.popBackStack() }, showDialog = {
+                showDialog.value=true
+            })
+
+            if(showDialog.value){
+                SessionStartDialog(onDismiss = {
+
+                }, onConfirm = {name,phone->
+
+                    //todo pass as args
+                    viewModel.load(
+                        userName = name?:"", phone = phone?:"", storeId = storeId.toString(), tableId = tableId.toString()
+                    )
+                }
+                )
+            }
+        }
+
+        composable(route = Routes.Cart){
+            CartScreen(
+                {
+                    navController.navigate(Routes.Order)
+                }
+            )
+        }
+        composable(route= Routes.Order){
+            //todo navigate
+            Text("orders list")
+//            OrderTrackingScreen(
+//                state = state,
+//                modifier = modifier,
+//                onBack = onBack,
+//                onToggleCustomer = onToggleCustomer,
+//                onSeeAll = onSeeAll,
+//                onInc = onInc,
+//                onDec = onDec,
+//                onRemoveLine = onRemoveLine,
+//                onPlaceOrder = onPlaceOrder
+//            )
         }
     }
 }

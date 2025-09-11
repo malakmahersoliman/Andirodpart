@@ -2,9 +2,13 @@
 package com.example.milkchequedemo.data.service
 
 import com.example.milkchequedemo.data.dto.MenuItemDto
+import com.example.milkchequedemo.data.dto.SessionRequestDto
+import com.example.milkchequedemo.data.dto.SessionResponseDto
 import com.example.milkchequedemo.data.dto.StoreInfoResponseDto
 import retrofit2.Response
+import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.POST
 import retrofit2.http.Query
 
 interface StoreApi {
@@ -16,6 +20,14 @@ interface StoreApi {
 
     // GET https://.../store/menu
     @GET("store/menu")
-    suspend fun getMenu(): Response<List<MenuItemDto>>
+    suspend fun getMenu(
+        @Query("storeId") storeId: Int,
+        @Query("tableId") tableId: Int
+    ): Response<List<MenuItemDto>>
+
+    @POST("session/add")
+    suspend fun initSession(
+        @Body sessionRequestDto: SessionRequestDto
+    ): Response<SessionResponseDto>
 }
 

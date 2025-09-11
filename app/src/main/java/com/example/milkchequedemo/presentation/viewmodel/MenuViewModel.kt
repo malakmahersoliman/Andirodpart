@@ -28,13 +28,11 @@ class MenuViewModel @Inject constructor(
         NumberFormat.getCurrencyInstance(Locale("ar","EG"))
     }
 
-    init { load() }
-
-    private fun load() = viewModelScope.launch {
-        when (val res = getMenu()) {
+    fun load(storeId: Int,
+                     tableId: Int) = viewModelScope.launch {
+        when (val res = getMenu(storeId = storeId, tableId = tableId)) {
             is ResponseWrapper.Success -> {
-                val items = (res.data ?: emptyList()).map { it.toProductUI() }
-                _state.value = _state.value.copy(bestSellers = items)
+                _state.value = _state.value.copy(bestSellers = res.data!!)
             }
             is ResponseWrapper.Error -> {
                 // TODO show a snackbar / retry, for now keep UI silent

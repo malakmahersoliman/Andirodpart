@@ -14,13 +14,14 @@ class MenuRepositoryImpl @Inject constructor(
 
     @Volatile private var cache: List<MenuItem>? = null
 
-    override suspend fun getMenu(): ResponseWrapper<List<MenuItem>> {
+    override suspend fun getMenu(storeId: Int,
+                                 tableId: Int): ResponseWrapper<List<MenuItem>> {
         return try {
-            val resp = remote.getMenu()
+            val resp = remote.getMenu(storeId = storeId, tableId = tableId)
             if (resp.isSuccessful) {
                 val body = resp.body().orEmpty().map { it.toDomain() }
                 cache = body
-                Success(body) // repo returns a final result (never Loading/Idle)
+                Success(body)
             } else {
                 Error(
                     message = resp.errorBody()?.string().orEmpty().ifBlank { resp.message() },
@@ -41,7 +42,7 @@ class MenuRepositoryImpl @Inject constructor(
         cache?.firstOrNull { it.id == id }?.let { return Success(it) }
 
         // Fallback to network once, then search
-        return when (val r = getMenu()) {
+        return when (val r = getMenu(1,1)) {
             is Success -> {
                 val list = r.data ?: emptyList()
                 Success(list.firstOrNull { it.id == id })
