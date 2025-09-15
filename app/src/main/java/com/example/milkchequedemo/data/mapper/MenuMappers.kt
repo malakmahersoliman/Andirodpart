@@ -10,5 +10,6 @@ fun MenuItemDto.toDomain() = MenuItem(
     name = menuItemName,
     price = price,
     description = menuItemDescription,
-    iconUrl = menuItemIcon
+    iconUrl = menuItemPictureURL,
+    menuItemCategory = menuItemCategory
 )

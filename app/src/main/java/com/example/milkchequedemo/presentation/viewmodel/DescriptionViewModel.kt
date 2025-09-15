@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.milkchequedemo.R
 import com.example.milkchequedemo.domain.model.MyCart
 import com.example.milkchequedemo.domain.model.Session
+import com.example.milkchequedemo.domain.model.SessionData
 import com.example.milkchequedemo.domain.model.SessionResponse
 import com.example.milkchequedemo.domain.usecase.CreateSessionUseCase
 import com.example.milkchequedemo.domain.usecase.GetMenuItemUseCase
@@ -66,18 +67,21 @@ class DescriptionViewModel @Inject constructor(
 
     fun load(
         userName: String,
-        phone: String,
+        mail: String,
         storeId: String,
         tableId: String
     ) = viewModelScope.launch {
         when (val r=sessionUseCase(
             Session(
-                userName = userName, phone = phone, storeId = storeId, tableId = tableId
+                userName = userName, mail = mail, storeId = storeId, tableId = tableId
             )
         )) {
             is ResponseWrapper.Success -> {
-                MyCart.name=userName
+                SessionData.name=userName
                 val item = r.data ?: return@launch
+                SessionData.sessionId = item.sessionId.toString()
+                SessionData.customerId = item.customerId
+                SessionData.token=item.token
                 _session.value=item
             }
             is ResponseWrapper.Error -> {

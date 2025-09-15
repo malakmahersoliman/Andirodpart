@@ -1,108 +1,3 @@
-//package com.example.milkchequedemo.presentation.navigation
-//
-//import androidx.compose.runtime.Composable
-//import androidx.navigation.compose.NavHost
-//import androidx.navigation.compose.composable
-//import androidx.navigation.NavHostController
-//import androidx.navigation.compose.rememberNavController
-//import com.example.milkchequedemo.presentation.screens.*
-//import com.example.milkchequedemo.R
-//
-//
-//@Composable
-//fun AppNavGraph(
-//    navController: NavHostController = rememberNavController(),
-//    startDestination: String = Routes.LOGIN
-//) {
-//    NavHost(
-//        navController = navController,
-//        startDestination = startDestination
-//    ) {
-//        // -------- Login --------
-//        composable(Routes.LOGIN) {
-//            LoginScreen(
-//                onLogin = { phone, pass ->
-//                    // TODO: validate -> if success go to home
-//                    navController.navigate(Routes.DIGITAL_MENU) {
-//                        popUpTo(Routes.LOGIN) { inclusive = true } // remove login from back stack
-//                        launchSingleTop = true
-//                    }
-//                },
-//                onForgotPassword = {
-//                    navController.navigate(Routes.FORGOT)
-//
-//                },
-//                onSignUp = {
-//                    navController.navigate(Routes.SIGNUP)
-//                }
-//
-//            )
-//        }
-//
-//        // -------- Signup --------
-//        composable(Routes.SIGNUP) {
-//            SignupScreen(
-//                onSignUp = { name, email, phone, pass ->
-//                    // TODO: call signup; then maybe go to verification
-//                    navController.navigate(Routes.VERIFY)
-//                },
-//                onLoginClick = { navController.navigate(Routes.LOGIN)  },
-//                onContinueAsGuest = {
-//                    navController.navigate(Routes.DIGITAL_MENU) {
-//                        popUpTo(Routes.LOGIN) { inclusive = true }
-//                    }
-//                }
-//
-//            )
-//        }
-//
-//        // -------- Forgot Password --------
-//        composable(Routes.FORGOT) {
-//            ForgetPasswordScreen(
-//                email = "",
-//                onEmailChange = { /* hoist to VM if needed */ },
-//                onSendClick = {
-//                    // TODO: trigger reset email, then go to NewPassword/Verify screen if you have one
-//                    navController.popBackStack() // back to Login after sending
-//                },
-//                onBackClick = { navController.popBackStack() },
-//                onBackToSignUpClick = { navController.navigate(Routes.SIGNUP) }
-//            )
-//        }
-//
-//        // -------- Optional screens wired now so navigation compiles --------
-//        composable(Routes.VERIFY) { VerificationScreenStub(onDone = {
-//            navController.navigate(Routes.DIGITAL_MENU) {
-//                popUpTo(Routes.LOGIN) { inclusive = true }
-//            }
-//        }) }
-//
-//        composable(Routes.NEW_PASS) { NewPasswordScreenStub(onDone = {
-//            navController.navigate(Routes.LOGIN) {
-//                popUpTo(Routes.LOGIN) { inclusive = true }
-//            }
-//        }) }
-//
-//        // -------- Your existing feature screens --------
-////        composable(Routes.DIGITAL_MENU) { DigitalMenu() }
-//
-////        composable(Routes.SCAN_ORDER) {
-////            ScanOrderScreen(
-////                qrImageRes = R.drawable.qr_placeholder,   // put a placeholder in res/drawable
-////                onScanClick = {
-////                    // TODO start camera / scanner flow or navigate
-////                    // navController.navigate(Routes.DIGITAL_MENU)
-////                }
-////            )
-////        }
-//    }
-//}
-//
-//// --- Simple stubs so the graph compiles if you haven't added these yet ---
-//@Composable private fun VerificationScreenStub(onDone: () -> Unit) { /* TODO */ }
-//@Composable private fun NewPasswordScreenStub(onDone: () -> Unit) { /* TODO */ }
-
-
 // presentation/navigation/AppNavGraph.kt
 package com.example.milkchequedemo.presentation.navigation
 
@@ -119,10 +14,19 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.milkchequedemo.domain.model.MenuItem
+import com.example.milkchequedemo.domain.model.SessionData
 import com.example.milkchequedemo.presentation.menu.MenuRoute
 import com.example.milkchequedemo.presentation.description.DescriptionRoute
 import com.example.milkchequedemo.presentation.screens.CartScreen
+import com.example.milkchequedemo.presentation.screens.CustomerOrderVM
+import com.example.milkchequedemo.presentation.screens.EntrypointtoPayScreen
+import com.example.milkchequedemo.presentation.screens.OrderLineVM
 import com.example.milkchequedemo.presentation.screens.OrderTrackingScreen
+import com.example.milkchequedemo.presentation.screens.OrderTrackingUiState
+import com.example.milkchequedemo.presentation.screens.PayMode
+import com.example.milkchequedemo.presentation.screens.PayerVM
+import com.example.milkchequedemo.presentation.screens.PaymentScreen
+import com.example.milkchequedemo.presentation.screens.PaymentUiState
 import com.example.milkchequedemo.presentation.screens.ScanOrderScreen
 import com.example.milkchequedemo.presentation.screens.SessionStartDialog
 import com.example.milkchequedemo.presentation.screens.WelcomeScreen
@@ -174,15 +78,17 @@ fun AppNavGraph(navController: NavHostController) {
             MenuRoute(
                 onOpenProduct = { item ->
 
-                    navController.navigate(Routes.description(Gson().toJson(
-                        item,
+                    navController.currentBackStackEntry?.savedStateHandle?.set("item", Gson().toJson(item))
+                    navController.currentBackStackEntry?.savedStateHandle?.set("storeId",storeId )
+                    navController.currentBackStackEntry?.savedStateHandle?.set("tableId", tableId)
+                    navController.navigate(Routes.description(item=Gson().toJson(
+                        item.copy(iconUrl = ""),
                     ), storeId = storeId, tableId = tableId
                     ))
                 },
                 onViewCart = {  navController.navigate(Routes.Cart)  },
                 storeId = storeId,
                 tableId = tableId,
-
                 )
         }
 
@@ -195,31 +101,37 @@ fun AppNavGraph(navController: NavHostController) {
                 navArgument("tableId") { type = NavType.IntType },
             )
         ) { backStack ->
-            val storeId = backStack.arguments!!.getInt("storeId")
-            val tableId = backStack.arguments!!.getInt("tableId")
+            val storeId = navController.previousBackStackEntry?.savedStateHandle?.get<Int>("storeId")
+//            backStack.arguments!!.getInt("storeId")
+            val tableId = navController.previousBackStackEntry?.savedStateHandle?.get<Int>("tableId")
+
             val viewModel= hiltViewModel<DescriptionViewModel>()
             val session=viewModel.session.collectAsState()
             val showDialog= remember {
                 mutableStateOf(false)
             }
+            val x= navController.previousBackStackEntry?.savedStateHandle?.get<String>("item")
+            val item: MenuItem? =
+                Gson().fromJson( x , MenuItem::class.java)
 
             if(session.value!=null){
                 showDialog.value=false
             }
 
-            val item = Gson().fromJson(backStack.arguments!!.getString("item"), MenuItem::class.java)
-            DescriptionRoute(item=item,onBack = { navController.popBackStack() }, showDialog = {
-                showDialog.value=true
+            //todo fix popBackStack crash
+            DescriptionRoute(item=item!!,onBack = { navController.popBackStack() }, showDialog = {
+                if(SessionData.token==null) {
+                    showDialog.value = true
+                }
             })
 
             if(showDialog.value){
                 SessionStartDialog(onDismiss = {
 
-                }, onConfirm = {name,phone->
+                }, onConfirm = {name,mail->
 
-                    //todo pass as args
                     viewModel.load(
-                        userName = name?:"", phone = phone?:"", storeId = storeId.toString(), tableId = tableId.toString()
+                        userName = name?:"", mail = mail?:"", storeId = storeId.toString(), tableId = tableId.toString()
                     )
                 }
                 )
@@ -233,20 +145,71 @@ fun AppNavGraph(navController: NavHostController) {
                 }
             )
         }
-        composable(route= Routes.Order){
-            //todo navigate
-            Text("orders list")
-//            OrderTrackingScreen(
-//                state = state,
-//                modifier = modifier,
-//                onBack = onBack,
-//                onToggleCustomer = onToggleCustomer,
-//                onSeeAll = onSeeAll,
-//                onInc = onInc,
-//                onDec = onDec,
-//                onRemoveLine = onRemoveLine,
-//                onPlaceOrder = onPlaceOrder
-//            )
+// presentation/navigation/AppNavGraph.kt
+        composable(route = Routes.Order) {
+            // TODO: replace with real state from your VM
+
+            OrderTrackingScreen(
+//                state = demo,
+//                onBack = { navController.popBackStack() },
+//                onToggleCustomer = { _, _ -> },
+//                onSeeAll = { _ -> },
+//                onInc = { _ -> },
+//                onDec = { _ -> },
+//                onRemoveLine = { _, _ -> },
+//                onPlaceOrder = {
+//                    // If you also allow “Place Order” here, you can jump to PayEntry again
+//                    navController.navigate(Routes.PayEntry)
+//                }
+            )
         }
+        composable(route = Routes.Cart) {
+            CartScreen(
+                order = {
+                    navController.navigate(Routes.Order)
+                }
+            )
+        }
+        // presentation/navigation/AppNavGraph.kt
+        composable(route = Routes.PayEntry) {
+            EntrypointtoPayScreen(
+                onEditClick = {
+                    // Prefer reusing an existing Order screen if it’s already on the stack
+                    val popped = navController.popBackStack(Routes.Cart, inclusive = false)
+                    if (!popped) {
+                        navController.navigate(Routes.Cart) {
+                            launchSingleTop = true
+                        }
+                    }
+                },
+                onProceedClick = {
+                    navController.navigate(Routes.Payment) {
+                        launchSingleTop = true
+                    }
+                }
+            )
+        }
+        // presentation/navigation/AppNavGraph.kt
+        composable(route = Routes.Payment) {
+            // TODO: replace with real data (e.g., from shared VM) once ready
+            val fake = PaymentUiState(
+                tableLabel = "Table #5",
+                mode = PayMode.Individually,
+                payers = listOf(
+                    PayerVM("p1", "Malak", "590.99 L.E."),
+                    PayerVM("p2", "Rola", "368.99 L.E.")
+                ),
+                grandTotalText = "959.98 L.E."
+            )
+
+            PaymentScreen(
+                state = fake,
+                onBack = { navController.popBackStack() },   // back to Entry
+                onModeChange = { /* update VM later */ },
+                onPayPerson = { _, _ -> /* handle later */ },
+                onPayAll = { /* handle later */ }
+            )
+        }
+
     }
 }

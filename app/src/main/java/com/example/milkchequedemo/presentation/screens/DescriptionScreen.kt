@@ -1,6 +1,5 @@
 package com.example.milkchequedemo.presentation.screens
 
-import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.BorderStroke
@@ -433,8 +432,12 @@ private fun DescriptionPreview() {
         onDelete = {},
         onAddToCart = {},
         item = MenuItem(
-            id = 7117, name = "Deann Finley", price = 8.9, description = "magna", iconUrl = "https://www.google.com/#q=reprehendunt",
-
+            id = 7117,
+            name = "Deann Finley",
+            price = 8.9,
+            description = "magna",
+            iconUrl = "https://www.google.com/#q=reprehendunt",
+            menuItemCategory = 1
         ),
         showDialog = {}
     )

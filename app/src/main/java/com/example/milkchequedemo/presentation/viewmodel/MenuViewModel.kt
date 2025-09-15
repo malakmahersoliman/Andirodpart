@@ -32,13 +32,17 @@ class MenuViewModel @Inject constructor(
                      tableId: Int) = viewModelScope.launch {
         when (val res = getMenu(storeId = storeId, tableId = tableId)) {
             is ResponseWrapper.Success -> {
-                _state.value = _state.value.copy(bestSellers = res.data!!)
+                _state.value = _state.value.copy(bestSellers = res.data!!,isLoading = false,error=null)
             }
             is ResponseWrapper.Error -> {
-                // TODO show a snackbar / retry, for now keep UI silent
-                // You can also keep a separate error string in UiState if you want
+                _state.value = _state.value.copy(error = res.message,isLoading = false)
             }
-            else -> Unit
+            is ResponseWrapper.Loading ->{
+                _state.value = _state.value.copy(isLoading = true)
+            }
+            ResponseWrapper.Idle ->{
+                _state.value = _state.value.copy(error = null,isLoading = false)
+            }
         }
     }
 

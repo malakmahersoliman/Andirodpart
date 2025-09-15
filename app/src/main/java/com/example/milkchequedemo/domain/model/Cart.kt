@@ -3,7 +3,7 @@ package com.example.milkchequedemo.domain.model
 object MyCart {
 
     val cart: MutableList<CartModel> = mutableListOf()
-    var name: String=""
+
 
     fun addItem(item: CartModel){
         cart.add(item)

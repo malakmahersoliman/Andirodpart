@@ -1,16 +1,3 @@
-//package com.example.milkchequedemo.presentation.navigation
-//
-//object Routes {
-//    const val LOGIN  = "login"
-//    const val SIGNUP = "signup"
-//    const val FORGOT = "forgot"
-//    const val VERIFY = "verify"          // (optional, if you’ll add it later)
-//    const val NEW_PASS = "new_password"  // (optional)
-//    const val DIGITAL_MENU = "digital_menu"
-//    const val SCAN_ORDER = "scan_order"
-//}
-
-
 package com.example.milkchequedemo.presentation.navigation
 
 object Routes {
@@ -22,12 +9,18 @@ object Routes {
     const val Menu = "menu/{storeId}/{tableId}"
     fun menu(storeId: Int, tableId: Int) = "menu/$storeId/$tableId"
 
-    // NEW
     const val Description = "description/{item}/{storeId}/{tableId}"
-    fun description(item: String,storeId: Int, tableId: Int) = "description/$item/$storeId/$tableId"
-
-
+    fun description(item: String, storeId: Int, tableId: Int) = "description/$item/$storeId/$tableId"
 
     const val Cart = "cart"
+
+    // Shows the order tracking list
     const val Order = "order"
+
+    // The “entry to payment” screen
+    const val PayEntry = "pay_entry"
+
+    // The actual payment screen
+    const val Payment = "payment"
 }
+

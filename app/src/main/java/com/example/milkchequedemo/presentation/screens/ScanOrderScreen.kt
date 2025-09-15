@@ -88,7 +88,7 @@ fun ScanOrderScreen(
                                         return@EmbeddedQrScanner
                                     }
 
-                                    // TODO: navigate or send to ViewModel
+
                                      navigateTo(Routes.welcome(storeId, tableId))
                                 }
                             )

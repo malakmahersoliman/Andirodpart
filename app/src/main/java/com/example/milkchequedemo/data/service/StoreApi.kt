@@ -1,6 +1,7 @@
 
 package com.example.milkchequedemo.data.service
 
+import com.example.milkchequedemo.data.dto.AllOrdersResponse
 import com.example.milkchequedemo.data.dto.MenuItemDto
 import com.example.milkchequedemo.data.dto.SessionRequestDto
 import com.example.milkchequedemo.data.dto.SessionResponseDto
@@ -19,6 +20,7 @@ interface StoreApi {
     ): Response<StoreInfoResponseDto>
 
     // GET https://.../store/menu
+
     @GET("store/menu")
     suspend fun getMenu(
         @Query("storeId") storeId: Int,
@@ -29,5 +31,10 @@ interface StoreApi {
     suspend fun initSession(
         @Body sessionRequestDto: SessionRequestDto
     ): Response<SessionResponseDto>
-}
 
+    @GET("session/allOrders")
+    suspend fun getAllOrders(
+        @Query("sessionId") storeId: String
+    ): Response<List<AllOrdersResponse>>
+
+}

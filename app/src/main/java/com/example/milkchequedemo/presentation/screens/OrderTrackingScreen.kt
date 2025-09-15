@@ -21,11 +21,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Remove
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -33,8 +30,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -45,17 +44,19 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.milkchequedemo.data.dto.AllOrdersResponse
 import com.example.milkchequedemo.presentation.components.ReusableButton
+import com.example.milkchequedemo.presentation.viewmodel.OrderTrackingViewmodel
 import com.example.milkchequedemo.ui.theme.MexicanRed
+import com.example.milkchequedemo.utils.calculateTotals
 
 /* ---------- UI State models (VM-friendly) ---------- */
 data class OrderTrackingUiState(
     val tableLabel: String = "Order Table 4",
-    val customers: List<CustomerOrderVM> = emptyList(),
-    val servicePct: Int = 10,
-    val taxPct: Int = 5,
-    val totals: TotalsVM = TotalsVM(),
-    val isPlacing: Boolean = false
+    val customers: List<AllOrdersResponse> = emptyList(),
+    val isLoading: Boolean=false,
+    val error: String?=null,
 )
 data class CustomerOrderVM(
     val id: String,
@@ -76,13 +77,12 @@ data class TotalsVM(
     val grandText: String = "0.00 L.E."
 )
 
-/* ----------------------------- Screen -------------
+/* ----------------------------- Screen ------------- ---------------- */
 
-//todo navigate for payment ---------------- */
+//todo navigate for payment "Done with changes"
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OrderTrackingScreen(
-    state: OrderTrackingUiState,
     modifier: Modifier = Modifier,
     onBack: () -> Unit = {},
     onToggleCustomer: (customerId: String, checked: Boolean) -> Unit = { _, _ -> },
@@ -91,7 +91,19 @@ fun OrderTrackingScreen(
     onDec: (item:OrderLineVM?) -> Unit = { },
     onRemoveLine: (customerId: String, lineId: String) -> Unit = { _, _ -> },
     onPlaceOrder: () -> Unit = {}
+
 ) {
+
+
+    val viewmodel= hiltViewModel<OrderTrackingViewmodel>()
+    val state by viewmodel.state.collectAsState()
+//    val totals = remember(state.customers) {
+//        calculateTotals(
+//            customers = state.customers,
+//            servicePct = state.servicePct,
+//            taxPct = state.taxPct
+//        )
+//    }
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -115,15 +127,15 @@ fun OrderTrackingScreen(
                     .padding(horizontal = 16.dp, vertical = 12.dp)
             ) {
                 TotalsSection(
-                    servicePct = state.servicePct,
-                    taxPct = state.taxPct,
-                    totals = state.totals
+                    servicePct = 10,
+                    taxPct = 5,
+                    totals = state.customers.sumOf { it.orderItems.sumOf { it.price } }
                 )
                 Spacer(Modifier.height(12.dp))
                 ReusableButton(
                     text = "Order",
                     onClick = onPlaceOrder,
-                    isLoading = state.isPlacing,
+                    isLoading = state.isLoading,
                     height = 52.dp,
                     shape = RoundedCornerShape(20.dp)
                 )
@@ -135,31 +147,31 @@ fun OrderTrackingScreen(
                 .fillMaxSize()
                 .padding(inner)
         ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                AssistChip(
-                    onClick = { /* hook later */ },
-                    label = { Text("All") },
-                    leadingIcon = {
-                        Icon(Icons.Filled.KeyboardArrowDown, contentDescription = null, modifier = Modifier.size(18.dp))
-                    }
-                )
-            }
+//            Row(
+//                modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
+//                verticalAlignment = Alignment.CenterVertically
+//            ) {
+//                AssistChip(
+//                    onClick = { /* hook later */ },
+//                    label = { Text("All") },
+//                    leadingIcon = {
+//                        Icon(Icons.Filled.KeyboardArrowDown, contentDescription = null, modifier = Modifier.size(18.dp))
+//                    }
+//                )
+//            }
 
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(bottom = 140.dp)
             ) {
-                items(state.customers, key = { it.id }) { customer ->
+                items(state.customers) { customer ->
                     CustomerCard(
                         customer = customer,
-                        onToggle = { checked -> onToggleCustomer(customer.id, checked) },
-                        onSeeAll = { onSeeAll(customer.id) },
+                        onToggle = { checked -> onToggleCustomer(customer.customerId.toString(), checked) },
+                        onSeeAll = { onSeeAll(customer.customerId.toString()) },
                         onInc = onInc,
                         onDec = onDec,
-                        onRemove = { lineId -> onRemoveLine(customer.id, "") }
+                        onRemove = { lineId -> onRemoveLine(customer.customerId.toString(), "") }
                     )
                 }
             }
@@ -170,13 +182,14 @@ fun OrderTrackingScreen(
 /* --------------------------- Components --------------------------- */
 @Composable
 fun CustomerCard(
-    customer: CustomerOrderVM,
+    customer: AllOrdersResponse,
     onToggle: (Boolean) -> Unit,
     onSeeAll: () -> Unit,
     onInc: (item:OrderLineVM) -> Unit,
     onDec: (item:OrderLineVM) -> Unit,
     onRemove: (item:OrderLineVM) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    containEdit: Boolean=false
 ) {
     Surface(
         modifier = modifier
@@ -189,28 +202,29 @@ fun CustomerCard(
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                Checkbox(checked = customer.isSelected, onCheckedChange = onToggle, modifier = Modifier.size(22.dp))
+//                Checkbox(checked = customer.isSelected, onCheckedChange = onToggle, modifier = Modifier.size(22.dp))
                 Text(
-                    text = customer.name,
+                    text = customer.customerName,
                     style = MaterialTheme.typography.titleMedium.copy(color = MexicanRed, fontWeight = FontWeight.SemiBold)
                 )
                 Spacer(Modifier.weight(1f))
-                TextButton(onClick = onSeeAll, contentPadding = PaddingValues(0.dp)) {
-                    Text("See All", fontSize = 12.sp)
-                }
-                IconButton(onClick = { /* clear all later */ }, modifier = Modifier.size(22.dp)) {
-                    Icon(Icons.Filled.Delete, contentDescription = "Clear", tint = Color.DarkGray)
-                }
+//                TextButton(onClick = onSeeAll, contentPadding = PaddingValues(0.dp)) {
+//                    Text("See All", fontSize = 12.sp)
+//                }
+//                IconButton(onClick = { /* clear all later */ }, modifier = Modifier.size(22.dp)) {
+//                    Icon(Icons.Filled.Delete, contentDescription = "Clear", tint = Color.DarkGray)
+//                }
             }
 
             Spacer(Modifier.height(6.dp))
 
-            customer.lines.forEach { line ->
+            customer.orderItems.forEach { line ->
                 OrderLineRow(
-                    line = line,
-                    onInc = { onInc(line) },
-                    onDec = { onDec(line) },
-                    onRemove = { onRemove(line) }
+                    containEdit=containEdit,
+                    order = line,
+                    onInc = {  },
+                    onDec = { },
+                    onRemove = {  }
                 )
                 Spacer(Modifier.height(4.dp))
             }
@@ -224,7 +238,9 @@ fun CustomerCard(
                 Text("(included Tax & Service)", style = MaterialTheme.typography.labelSmall.copy(color = Color.Gray))
                 Spacer(Modifier.weight(1f))
                 Text(
-                    customer.totalText,
+                    customer.orderItems.sumOf {
+                        it.price
+                    }.toString(),
                     style = MaterialTheme.typography.bodyMedium.copy(color = MexicanRed, fontWeight = FontWeight.Bold)
                 )
             }
@@ -232,17 +248,19 @@ fun CustomerCard(
     }
 }
 
+//todo adjust tax and service  "Done"
 @Composable
 private fun OrderLineRow(
-    line: OrderLineVM,
-    onInc: () -> Unit,
+    order: AllOrdersResponse.OrderItem,
+    containEdit: Boolean,
+     onInc: () -> Unit,
     onDec: () -> Unit,
     onRemove: () -> Unit,
     height: Dp = 28.dp
 ) {
     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Text(text = line.title, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
-        Text(text = line.priceText, modifier = Modifier.padding(end = 10.dp), style = MaterialTheme.typography.bodyMedium)
+        Text(text = order.name, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(text = order.price.toString(), modifier = Modifier.padding(end = 10.dp), style = MaterialTheme.typography.bodyMedium)
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -251,12 +269,23 @@ private fun OrderLineRow(
                 .background(Color(0xFFF2F2F2))
                 .padding(horizontal = 6.dp, vertical = 2.dp)
         ) {
-            IconButton(onClick = {
-                onRemove()
-            }, modifier = Modifier.size(height)) {
-                Icon(Icons.Filled.Delete, contentDescription = "Remove item", tint = Color.DarkGray)
+
+            if(containEdit) {
+                IconButton(onClick = {
+                    onRemove()
+                }, modifier = Modifier.size(height)) {
+                    Icon(
+                        Icons.Filled.Delete,
+                        contentDescription = "Remove item",
+                        tint = Color.DarkGray
+                    )
+                }
+                Stepper(qty = order.quantity, onInc = onInc, onDec = onDec, height = height)
+            }else{
+                Box(modifier = Modifier.height(height).widthIn(min = 24.dp), contentAlignment = Alignment.Center) {
+                    Text("${order.quantity}", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                }
             }
-            Stepper(qty = line.qty, onInc = onInc, onDec = onDec, height = height)
         }
     }
 }
@@ -277,22 +306,22 @@ private fun Stepper(qty: Int, onInc: () -> Unit, onDec: () -> Unit, height: Dp) 
 
 /* ---- Totals: fix was making helpers @Composable instead of plain fun ---- */
 @Composable
-private fun TotalsSection(servicePct: Int, taxPct: Int, totals: TotalsVM) {
+private fun TotalsSection( servicePct: Int, taxPct: Int, totals: Double) {
     TotalLinePill(
         label = "Service${servicePct}%",
-        value = totals.serviceText,
+        value = ((servicePct/100)*totals).toString(),
         bg = Color(0xFFEAF8F1),
         textColor = Color(0xFF1F8F5B)
     )
     Spacer(Modifier.height(8.dp))
     TotalLinePill(
         label = "Tax  ${taxPct}%",
-        value = totals.taxText,
+        value = ((taxPct/100)*totals).toString(),
         bg = Color(0xFFEAF8F1),
         textColor = Color(0xFF1F8F5B)
     )
     Spacer(Modifier.height(8.dp))
-    TotalGrandLine(label = "Total", value = totals.grandText)
+    TotalGrandLine(label = "Total", value = totals.toString())
 }
 
 @Composable
@@ -318,68 +347,72 @@ private fun TotalGrandLine(label: String, value: String) {
 }
 
 /* ------------------------------ Preview ------------------------------ */
-@Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
-@Composable
-private fun OrderTrackingPreview() {
-    val state = OrderTrackingUiState(
-        tableLabel = "Order Table 4",
-        customers = listOf(
-            CustomerOrderVM(
-                id = "c1",
-                name = "Malak",
-                isSelected = true,
-                lines = listOf(
-                    OrderLineVM("l1", "Cheese Fries", "60.00 L.E.", 1),
-                    OrderLineVM("l2", "Pepsi", "25.00 L.E.", 1),
-                    OrderLineVM("l3", "Buffalo Chicken", "478.00 L.E.", 2)
-                ),
-                totalText = "580.99 L.E."
-            ),
-            CustomerOrderVM(
-                id = "c2",
-                name = "Rola",
-                isSelected = true,
-                lines = listOf(
-                    OrderLineVM("l4", "Penne all'Arrabbiata", "258.00 L.E.", 1),
-                    OrderLineVM("l5", "Coke Diet", "25.00 L.E.", 2),
-                    OrderLineVM("l6", "Polish doughnuts", "85.99 L.E.", 2)
-                ),
-                totalText = "368.99 L.E."
-            ),
-            CustomerOrderVM(
-                id = "c3",
-                name = "Lulu",
-                isSelected = false,
-                lines = listOf(OrderLineVM("l7", "Melting Cheese Pizza", "407.4 L.E.", 1)),
-                totalText = "425.03 L.E."
-            ),
-            CustomerOrderVM(
-                id = "c4",
-                name = "Hamed",
-                isSelected = true,
-                lines = listOf(
-                    OrderLineVM("l8", "Cheese Fries", "60.00 L.E.", 1),
-                    OrderLineVM("l9", "Pepsi", "25.00 L.E.", 1)
-                ),
-                totalText = "102.99 L.E."
-            ),
-            CustomerOrderVM(
-                id = "c5",
-                name = "Youssef",
-                isSelected = true,
-                lines = listOf(
-                    OrderLineVM("l10", "French Fries", "30.00 L.E.", 1),
-                    OrderLineVM("l11", "Pepsi", "25.00 L.E.", 1),
-                    OrderLineVM("l12", "Shrimp Scampi", "300.76 L.E.", 2)
-                ),
-                totalText = "355.76 L.E."
-            )
-        ),
-        servicePct = 10,
-        taxPct = 5,
-        totals = TotalsVM(serviceText = "10.99 L.E.", taxText = "7.00 L.E.", grandText = "1,833.76 L.E."),
-        isPlacing = false
-    )
-
-    OrderTrackingScreen(state = state)
-}
+//@Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
+//@Composable
+//private fun OrderTrackingPreview() {
+//    val customers = listOf(
+//        CustomerOrderVM(
+//            id = "c1",
+//            name = "Malak",
+//            isSelected = true,
+//            lines = listOf(
+//                OrderLineVM("l1", "Cheese Fries", "60.00 L.E.", 1),
+//                OrderLineVM("l2", "Pepsi", "25.00 L.E.", 1),
+//                OrderLineVM("l3", "Buffalo Chicken", "478.00 L.E.", 2)
+//            ),
+//            totalText = "580.99 L.E."
+//        ),
+//        CustomerOrderVM(
+//            id = "c2",
+//            name = "Rola",
+//            isSelected = true,
+//            lines = listOf(
+//                OrderLineVM("l4", "Penne all'Arrabbiata", "258.00 L.E.", 1),
+//                OrderLineVM("l5", "Coke Diet", "25.00 L.E.", 2),
+//                OrderLineVM("l6", "Polish doughnuts", "85.99 L.E.", 2)
+//            ),
+//            totalText = "368.99 L.E."
+//        ),
+//        CustomerOrderVM(
+//            id = "c3",
+//            name = "Lulu",
+//            isSelected = false,
+//            lines = listOf(OrderLineVM("l7", "Melting Cheese Pizza", "407.4 L.E.", 1)),
+//            totalText = "425.03 L.E."
+//        ),
+//        CustomerOrderVM(
+//            id = "c4",
+//            name = "Hamed",
+//            isSelected = true,
+//            lines = listOf(
+//                OrderLineVM("l8", "Cheese Fries", "60.00 L.E.", 1),
+//                OrderLineVM("l9", "Pepsi", "25.00 L.E.", 1)
+//            ),
+//            totalText = "102.99 L.E."
+//        ),
+//        CustomerOrderVM(
+//            id = "c5",
+//            name = "Youssef",
+//            isSelected = true,
+//            lines = listOf(
+//                OrderLineVM("l10", "French Fries", "30.00 L.E.", 1),
+//                OrderLineVM("l11", "Pepsi", "25.00 L.E.", 1),
+//                OrderLineVM("l12", "Shrimp Scampi", "300.76 L.E.", 2)
+//            ),
+//            totalText = "355.76 L.E."
+//        )
+//    )
+//
+//    val totals = calculateTotals(customers, servicePct = 10, taxPct = 5)
+//
+//    val state = OrderTrackingUiState(
+//        tableLabel = "Order Table 4",
+//        customers = customers,
+//        servicePct = 10,
+//        taxPct = 5,
+//        totals = totals,
+//        isPlacing = false
+//    )
+//
+//    OrderTrackingScreen(state = state)
+//}

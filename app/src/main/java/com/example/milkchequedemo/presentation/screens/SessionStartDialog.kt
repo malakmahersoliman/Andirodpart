@@ -18,7 +18,7 @@ fun SessionStartDialog(
     onConfirm: (name: String?, phone: String?) -> Unit
 ) {
     var name by remember { mutableStateOf("") }
-    var phone by remember { mutableStateOf("") }
+    var mail by remember { mutableStateOf("") }
 
     AlertDialog(
         onDismissRequest = { onDismiss() },
@@ -33,11 +33,11 @@ fun SessionStartDialog(
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
-                    value = phone,
-                    onValueChange = { phone = it },
-                    label = { Text("Phone ") },
+                    value = mail,
+                    onValueChange = { mail = it },
+                    label = { Text("Email") },
                     singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+//                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                     modifier = Modifier.fillMaxWidth()
                 )
                 if (error != null) {
@@ -47,7 +47,7 @@ fun SessionStartDialog(
         },
         confirmButton = {
             Button(
-                onClick = { onConfirm(name.ifBlank { null }, phone.ifBlank { null }) },
+                onClick = { onConfirm(name.ifBlank { "" }, mail.ifBlank { "" }) },
             ) {
                     CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
                     Spacer(Modifier.width(8.dp))

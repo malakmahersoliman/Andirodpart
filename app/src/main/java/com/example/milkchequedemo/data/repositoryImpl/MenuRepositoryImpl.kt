@@ -1,7 +1,9 @@
 package com.example.milkchequedemo.data.repositoryImpl
 
 import com.example.milkchequedemo.data.datasource.RemoteDataSource
+import com.example.milkchequedemo.data.dto.AllOrdersResponse
 import com.example.milkchequedemo.data.mapper.toDomain
+import com.example.milkchequedemo.domain.model.CategoryResponse
 import com.example.milkchequedemo.domain.model.MenuItem
 import com.example.milkchequedemo.domain.repository.MenuRepository
 import com.example.milkchequedemo.utils.ResponseWrapper
@@ -37,6 +39,7 @@ class MenuRepositoryImpl @Inject constructor(
         }
     }
 
+
     override suspend fun findMenuItem(id: Long): ResponseWrapper<MenuItem?> {
         // Fast path: in-memory cache
         cache?.firstOrNull { it.id == id }?.let { return Success(it) }
@@ -52,6 +55,27 @@ class MenuRepositoryImpl @Inject constructor(
             // but handle defensively to avoid TODO()/crashes.
             Loading -> Error("Unexpected Loading state in repository", code = -2)
             Idle    -> Error("Unexpected Idle state in repository",    code = -2)
+        }
+    }
+
+    override suspend fun getAllOrders(sessionId: String): ResponseWrapper<List<AllOrdersResponse>> {
+
+        return try {
+            val resp = remote.getAllOrders(sessionId)
+            if (resp.isSuccessful) {
+                val body = resp.body()
+                Success(body)
+            } else {
+                Error(
+                    message = resp.errorBody()?.string().orEmpty().ifBlank { resp.message() },
+                    code = resp.code()
+                )
+            }
+        } catch (e: Exception) {
+            Error(
+                message = e.message ?: "Unknown error",
+                code = -1
+            )
         }
     }
 }
