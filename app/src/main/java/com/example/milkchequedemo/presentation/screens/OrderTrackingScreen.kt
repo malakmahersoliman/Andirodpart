@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.milkchequedemo.data.config.AppConfig
 import com.example.milkchequedemo.data.dto.AllOrdersResponse
 import com.example.milkchequedemo.domain.model.SessionData
 import com.example.milkchequedemo.presentation.components.ReusableButton
@@ -144,10 +145,14 @@ fun OrderTrackingScreen(
                         .background(Color(0xFFF7F7F7))
                         .padding(horizontal = 16.dp, vertical = 12.dp)
                 ) {
+                    val subTotal = remember(state.customers) {
+                        state.customers.sumOf { c -> c.orderItems.sumOf { it.price * it.quantity } }
+                    }
+
                     TotalsSection(
                         servicePct = 10,
                         taxPct = 5,
-                        totals = state.customers.sumOf { it.orderItems.sumOf { it.price } }
+                        subTotal = subTotal        // <-- pass subtotal, not raw sum
                     )
                     Spacer(Modifier.height(12.dp))
                     ReusableButton(
@@ -265,18 +270,42 @@ fun CustomerCard(
             }
 
             Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Total", style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold))
+                val servicePct = AppConfig.Pricing.DEFAULT_SERVICE_PERCENTAGE
+                val taxPct = AppConfig.Pricing.DEFAULT_TAX_PERCENTAGE
+
+                // Subtotal must include quantity
+                val subTotal = customer.orderItems.sumOf { it.price * it.quantity }
+
+                // Choose your policy: tax on subtotal (common in your code so far)
+                val service = subTotal * (servicePct / 100.0)
+                val tax = subTotal * (taxPct / 100.0)
+
+                // If your policy is "tax after service", use:
+                // val tax = (subTotal + service) * (taxPct / 100.0)
+
+                val totalWithCharges = subTotal + service + tax
+
+                Text(
+                    "Total",
+                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold)
+                )
                 Spacer(Modifier.width(8.dp))
-                Text("(included Tax & Service)", style = MaterialTheme.typography.labelSmall.copy(color = Color.Gray))
+                Text(
+                    "(included Tax & Service)",
+                    style = MaterialTheme.typography.labelSmall.copy(color = Color.Gray)
+                )
                 Spacer(Modifier.weight(1f))
                 Text(
-                    customer.orderItems.sumOf {
-                        it.price
-                    }.toString(),
-                    style = MaterialTheme.typography.bodyMedium.copy(color = MexicanRed, fontWeight = FontWeight.Bold)
+                    String.format("%.2f", totalWithCharges),   // plain number, no currency
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = MexicanRed,
+                        fontWeight = FontWeight.Bold
+                    )
                 )
             }
         }
@@ -341,28 +370,46 @@ private fun Stepper(qty: Int, onInc: () -> Unit, onDec: () -> Unit, height: Dp) 
 
 /* ---- Totals: fix was making helpers @Composable instead of plain fun ---- */
 @Composable
-private fun TotalsSection( servicePct: Int, taxPct: Int, totals: Double) {
+private fun TotalsSection(servicePct: Int, taxPct: Int, subTotal: Double) {
+    // Use Double division to avoid 0 results (10 / 100.0 = 0.1)
+    val service = subTotal * (servicePct / 100.0)
+
+    // Choose your tax base:
+    // If tax is on subtotal only:
+    val tax = subTotal * (taxPct / 100.0)
+
+    // If your policy is tax after service, use this instead:
+    // val tax = (subTotal + service) * (taxPct / 100.0)
+
+    val grand = subTotal + service + tax
+
     TotalLinePill(
-        label = "Service${servicePct}%",
-        value = ((servicePct/100)*totals).toString(),
+        label = "Service ${servicePct}%",
+        value = formatEGP(service),
         bg = Color(0xFFEAF8F1),
         textColor = Color(0xFF1F8F5B)
     )
     Spacer(Modifier.height(8.dp))
     TotalLinePill(
-        label = "Tax  ${taxPct}%",
-        value = ((taxPct/100)*totals).toString(),
+        label = "Tax ${taxPct}%",
+        value = formatEGP(tax),
         bg = Color(0xFFEAF8F1),
         textColor = Color(0xFF1F8F5B)
     )
     Spacer(Modifier.height(8.dp))
-    TotalGrandLine(label = "Total", value = totals.toString())
+    TotalGrandLine(label = "Total", value = formatEGP(grand))
 }
+
+private fun formatEGP(value: Double): String =
+    String.format("%.2f L.E.", value)
 
 @Composable
 private fun TotalLinePill(label: String, value: String, bg: Color, textColor: Color) {
     Surface(color = bg, shape = RoundedCornerShape(14.dp), modifier = Modifier.fillMaxWidth()) {
-        Row(modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Text(label, color = textColor)
             Spacer(Modifier.weight(1f))
             Text(value, color = textColor, fontWeight = FontWeight.SemiBold)
@@ -373,13 +420,17 @@ private fun TotalLinePill(label: String, value: String, bg: Color, textColor: Co
 @Composable
 private fun TotalGrandLine(label: String, value: String) {
     Surface(color = Color(0xFFE9F8EE), shape = RoundedCornerShape(14.dp), modifier = Modifier.fillMaxWidth()) {
-        Row(modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Text(label, fontWeight = FontWeight.SemiBold, color = Color(0xFF0E7A4E))
             Spacer(Modifier.weight(1f))
             Text(value, fontWeight = FontWeight.Bold, color = Color(0xFF0E7A4E))
         }
     }
 }
+
 
 /* ------------------------------ Preview ------------------------------ */
 //@Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)

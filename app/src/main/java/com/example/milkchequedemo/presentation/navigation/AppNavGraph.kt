@@ -135,21 +135,13 @@ fun AppNavGraph(navController: NavHostController) {
                 )
             }
         }
-
-        composable(route = Routes.Cart){
-            CartScreen(
-                {
-                    navController.navigate(Routes.Order)
-                }
-            )
-        }
 // presentation/navigation/AppNavGraph.kt
         composable(route = Routes.Order) {
             // TODO: replace with real state from your VM
 
             OrderTrackingScreen(
 //                state = demo,
-//                onBack = { navController.popBackStack() },
+                onBack = { navController.popBackStack() },
 //                onToggleCustomer = { _, _ -> },
 //                onSeeAll = { _ -> },
 //                onInc = { _ -> },
@@ -165,7 +157,8 @@ fun AppNavGraph(navController: NavHostController) {
             CartScreen(
                 order = {
                     navController.navigate(Routes.Order)
-                }
+                },
+                onBack = { navController.popBackStack() }
             )
         }
         // presentation/navigation/AppNavGraph.kt
