@@ -101,10 +101,9 @@ fun AppNavGraph(navController: NavHostController) {
                 navArgument("tableId") { type = NavType.IntType },
             )
         ) { backStack ->
-            val storeId = navController.previousBackStackEntry?.savedStateHandle?.get<Int>("storeId")
-//            backStack.arguments!!.getInt("storeId")
-            val tableId = navController.previousBackStackEntry?.savedStateHandle?.get<Int>("tableId")
-
+            val storeId = navController.previousBackStackEntry?.savedStateHandle?.get<String>("item")
+            backStack.arguments!!.getInt("storeId")
+            val tableId = backStack.arguments!!.getInt("tableId")
             val viewModel= hiltViewModel<DescriptionViewModel>()
             val session=viewModel.session.collectAsState()
             val showDialog= remember {
@@ -118,7 +117,6 @@ fun AppNavGraph(navController: NavHostController) {
                 showDialog.value=false
             }
 
-            //todo fix popBackStack crash
             DescriptionRoute(item=item!!,onBack = { navController.popBackStack() }, showDialog = {
                 if(SessionData.token==null) {
                     showDialog.value = true
