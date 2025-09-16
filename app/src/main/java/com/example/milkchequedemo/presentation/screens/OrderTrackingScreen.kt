@@ -2,6 +2,7 @@ package com.example.milkchequedemo.presentation.screens
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -23,6 +24,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -46,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.milkchequedemo.data.dto.AllOrdersResponse
+import com.example.milkchequedemo.domain.model.SessionData
 import com.example.milkchequedemo.presentation.components.ReusableButton
 import com.example.milkchequedemo.presentation.viewmodel.OrderTrackingViewmodel
 import com.example.milkchequedemo.ui.theme.MexicanRed
@@ -95,84 +98,98 @@ fun OrderTrackingScreen(
 ) {
 
 
-    val viewmodel= hiltViewModel<OrderTrackingViewmodel>()
+    val viewmodel = hiltViewModel<OrderTrackingViewmodel>()
     val state by viewmodel.state.collectAsState()
-//    val totals = remember(state.customers) {
-//        calculateTotals(
-//            customers = state.customers,
-//            servicePct = state.servicePct,
-//            taxPct = state.taxPct
-//        )
-//    }
-    Scaffold(
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        text = state.tableLabel,
-                        style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                }
-            )
-        },
-        bottomBar = {
-            Column(
-                modifier = Modifier
-                    .background(Color(0xFFF7F7F7))
-                    .padding(horizontal = 16.dp, vertical = 12.dp)
-            ) {
-                TotalsSection(
-                    servicePct = 10,
-                    taxPct = 5,
-                    totals = state.customers.sumOf { it.orderItems.sumOf { it.price } }
-                )
-                Spacer(Modifier.height(12.dp))
-                ReusableButton(
-                    text = "Order",
-                    onClick = onPlaceOrder,
-                    isLoading = state.isLoading,
-                    height = 52.dp,
-                    shape = RoundedCornerShape(20.dp)
-                )
-            }
-        }
-    ) { inner ->
-        Column(
-            modifier = modifier
-                .fillMaxSize()
-                .padding(inner)
-        ) {
-//            Row(
-//                modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
-//                verticalAlignment = Alignment.CenterVertically
-//            ) {
-//                AssistChip(
-//                    onClick = { /* hook later */ },
-//                    label = { Text("All") },
-//                    leadingIcon = {
-//                        Icon(Icons.Filled.KeyboardArrowDown, contentDescription = null, modifier = Modifier.size(18.dp))
-//                    }
-//                )
-//            }
 
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = 140.dp)
-            ) {
-                items(state.customers) { customer ->
-                    CustomerCard(
-                        customer = customer,
-                        onToggle = { checked -> onToggleCustomer(customer.customerId.toString(), checked) },
-                        onSeeAll = { onSeeAll(customer.customerId.toString()) },
-                        onInc = onInc,
-                        onDec = onDec,
-                        onRemove = { lineId -> onRemoveLine(customer.customerId.toString(), "") }
+    if (state.isLoading) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            CircularProgressIndicator()
+        }
+    } else if (state.error != null) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(state.error!!)
+            ReusableButton(
+                onClick = {
+                    viewmodel.load(SessionData.sessionId!!)
+                },
+                text = "Please Try Again"
+            )
+        }
+    } else {
+        Scaffold(
+            topBar = {
+                CenterAlignedTopAppBar(
+                    title = {
+                        Text(
+                            text = state.tableLabel,
+                            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
+                        )
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = onBack) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        }
+                    }
+                )
+            },
+            bottomBar = {
+                Column(
+                    modifier = Modifier
+                        .background(Color(0xFFF7F7F7))
+                        .padding(horizontal = 16.dp, vertical = 12.dp)
+                ) {
+                    TotalsSection(
+                        servicePct = 10,
+                        taxPct = 5,
+                        totals = state.customers.sumOf { it.orderItems.sumOf { it.price } }
                     )
+                    Spacer(Modifier.height(12.dp))
+                    ReusableButton(
+                        text = "Order",
+                        onClick = onPlaceOrder,
+                        isLoading = state.isLoading,
+                        height = 52.dp,
+                        shape = RoundedCornerShape(20.dp)
+                    )
+                }
+            }
+        ) { inner ->
+            Column(
+                modifier = modifier
+                    .fillMaxSize()
+                    .padding(inner)
+            ) {
+
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(bottom = 140.dp)
+                ) {
+                    items(state.customers) { customer ->
+                        CustomerCard(
+                            customer = customer,
+                            onToggle = { checked ->
+                                onToggleCustomer(
+                                    customer.customerId.toString(),
+                                    checked
+                                )
+                            },
+                            onSeeAll = { onSeeAll(customer.customerId.toString()) },
+                            onInc = onInc,
+                            onDec = onDec,
+                            onRemove = { lineId ->
+                                onRemoveLine(
+                                    customer.customerId.toString(),
+                                    ""
+                                )
+                            }
+                        )
+                    }
                 }
             }
         }
@@ -222,9 +239,27 @@ fun CustomerCard(
                 OrderLineRow(
                     containEdit=containEdit,
                     order = line,
-                    onInc = {  },
-                    onDec = { },
-                    onRemove = {  }
+                    onInc = {
+                        onInc(OrderLineVM(
+                            id = line.id.toString(),
+                            title = line.name, priceText = line.price.toString(), qty = line.quantity
+
+                        ))
+                    },
+                    onDec = {
+                        onDec(OrderLineVM(
+                            id = line.id.toString(),
+                            title = line.name, priceText = line.price.toString(), qty = line.quantity
+
+                        ))
+                    },
+                    onRemove = {
+                        onRemove(OrderLineVM(
+                            id = line.id.toString(),
+                            title = line.name, priceText = line.price.toString(), qty = line.quantity
+
+                        ))
+                    }
                 )
                 Spacer(Modifier.height(4.dp))
             }

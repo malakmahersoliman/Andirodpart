@@ -73,15 +73,6 @@ fun EntrypointtoPayScreen(
 
         Spacer(Modifier.height(32.dp))
 
-
-        ReusableButton(
-            text = "Edit to Order",
-            onClick = onEditClick,
-            modifier = Modifier.fillMaxWidth(),
-            height = 52.dp
-        )
-        Spacer(Modifier.height(16.dp))
-
         ReusableButton(
             text = "Proceed to Payment",
             onClick = onProceedClick,

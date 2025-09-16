@@ -39,13 +39,13 @@ fun CartScreen(
     viewModel: CartViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    
+
     // Show loading state
     if (uiState.isLoading) {
         LoadingIndicator(message = "Loading cart...")
         return
     }
-    
+
     // Show error state
     if (uiState.errorMessage != null) {
         ErrorHandler(
@@ -69,8 +69,8 @@ fun CartScreen(
                         .padding(AppConfig.UI.PADDING_MEDIUM.dp)
                 ) {
                     OrderSummaryRow(
-                        label = "Total", 
-                        value = uiState.calculations.grandTotalText, 
+                        label = "Total",
+                        value = uiState.calculations.grandTotalText,
                         emphasize = true
                     )
                     Spacer(modifier = Modifier.padding(top = AppConfig.UI.PADDING_SMALL.dp))
@@ -97,16 +97,16 @@ fun CartScreen(
                 // Customer block + lines list
                 CustomerCard(
                     containEdit = true,
-                   onInc = { line ->
-                        val item = uiState.cartItems.find { it.name == line.title }
+                    onInc = { line ->
+                        val item = uiState.cartItems.find { it.id.toString() == line.id }
                         item?.let { viewModel.increaseQuantity(it) }
                     },
                     onDec = { line ->
-                        val item = uiState.cartItems.find { it.name == line.title }
+                        val item = uiState.cartItems.find { it.id.toString() == line.id }
                         item?.let { viewModel.decreaseQuantity(it) }
                     },
                     onRemove = { removed ->
-                        val item = uiState.cartItems.find { it.name == removed.title }
+                        val item = uiState.cartItems.find { it.id.toString() == removed.id }
                         item?.let { viewModel.removeItem(it) }
                     },
                     onToggle = {}, onSeeAll = {},

@@ -53,6 +53,7 @@ import coil.compose.AsyncImage
 import com.example.milkchequedemo.R
 import com.example.milkchequedemo.domain.model.MenuItem
 import com.example.milkchequedemo.presentation.components.ReusableButton
+import com.example.milkchequedemo.presentation.navigation.ItemImage
 import com.example.milkchequedemo.ui.theme.MexicanRed
 
 /* ======================= UI STATE (view-only) ======================= */
@@ -135,7 +136,7 @@ fun DescriptionScreen(
             item {
                 // Big image
                 AsyncImage(
-                    model = item.iconUrl,
+                    model = ItemImage.img,
                     contentDescription = item.name,
                     modifier = Modifier
                         .fillMaxWidth()

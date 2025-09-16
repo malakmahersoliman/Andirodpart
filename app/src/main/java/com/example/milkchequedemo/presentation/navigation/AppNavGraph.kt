@@ -33,6 +33,9 @@ import com.example.milkchequedemo.presentation.screens.WelcomeScreen
 import com.example.milkchequedemo.presentation.viewmodel.DescriptionViewModel
 import com.google.gson.Gson
 
+object ItemImage{
+    var img:String=""
+}
 @Composable
 fun AppNavGraph(navController: NavHostController) {
     NavHost(navController, startDestination = Routes.Scan) {
@@ -77,10 +80,7 @@ fun AppNavGraph(navController: NavHostController) {
 
             MenuRoute(
                 onOpenProduct = { item ->
-
-                    navController.currentBackStackEntry?.savedStateHandle?.set("item", Gson().toJson(item))
-                    navController.currentBackStackEntry?.savedStateHandle?.set("storeId",storeId )
-                    navController.currentBackStackEntry?.savedStateHandle?.set("tableId", tableId)
+                    ItemImage.img= item.iconUrl.toString()
                     navController.navigate(Routes.description(item=Gson().toJson(
                         item.copy(iconUrl = ""),
                     ), storeId = storeId, tableId = tableId
@@ -101,23 +101,23 @@ fun AppNavGraph(navController: NavHostController) {
                 navArgument("tableId") { type = NavType.IntType },
             )
         ) { backStack ->
-            val storeId = navController.previousBackStackEntry?.savedStateHandle?.get<String>("item")
-            backStack.arguments!!.getInt("storeId")
-            val tableId = backStack.arguments!!.getInt("tableId")
+            val storeId =   backStack.arguments!!.getInt("storeId")
+            val tableId =  backStack.arguments!!.getInt("tableId")
             val viewModel= hiltViewModel<DescriptionViewModel>()
             val session=viewModel.session.collectAsState()
             val showDialog= remember {
                 mutableStateOf(false)
             }
-            val x= navController.previousBackStackEntry?.savedStateHandle?.get<String>("item")
-            val item: MenuItem? =
-                Gson().fromJson( x , MenuItem::class.java)
+            val item: MenuItem =
+                Gson().fromJson( backStack.arguments!!.getString("item"), MenuItem::class.java)
 
             if(session.value!=null){
                 showDialog.value=false
             }
 
-            DescriptionRoute(item=item!!,onBack = { navController.popBackStack() }, showDialog = {
+            DescriptionRoute(item=item,onBack = { navController.navigate(
+                Routes.menu(storeId,tableId)
+            ) }, showDialog = {
                 if(SessionData.token==null) {
                     showDialog.value = true
                 }
@@ -155,10 +155,10 @@ fun AppNavGraph(navController: NavHostController) {
 //                onInc = { _ -> },
 //                onDec = { _ -> },
 //                onRemoveLine = { _, _ -> },
-//                onPlaceOrder = {
-//                    // If you also allow “Place Order” here, you can jump to PayEntry again
-//                    navController.navigate(Routes.PayEntry)
-//                }
+                onPlaceOrder = {
+                    // If you also allow “Place Order” here, you can jump to PayEntry again
+                    navController.navigate(Routes.PayEntry)
+                }
             )
         }
         composable(route = Routes.Cart) {
