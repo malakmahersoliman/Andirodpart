@@ -2,7 +2,6 @@
 package com.example.milkchequedemo.presentation.navigation
 
 import android.util.Log
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
@@ -15,14 +14,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.milkchequedemo.domain.model.MenuItem
 import com.example.milkchequedemo.domain.model.SessionData
-import com.example.milkchequedemo.presentation.menu.MenuRoute
 import com.example.milkchequedemo.presentation.description.DescriptionRoute
+import com.example.milkchequedemo.presentation.menu.MenuRoute
 import com.example.milkchequedemo.presentation.screens.CartScreen
-import com.example.milkchequedemo.presentation.screens.CustomerOrderVM
 import com.example.milkchequedemo.presentation.screens.EntrypointtoPayScreen
-import com.example.milkchequedemo.presentation.screens.OrderLineVM
 import com.example.milkchequedemo.presentation.screens.OrderTrackingScreen
-import com.example.milkchequedemo.presentation.screens.OrderTrackingUiState
 import com.example.milkchequedemo.presentation.screens.PayMode
 import com.example.milkchequedemo.presentation.screens.PayerVM
 import com.example.milkchequedemo.presentation.screens.PaymentScreen
@@ -147,9 +143,8 @@ fun AppNavGraph(navController: NavHostController) {
 //                onInc = { _ -> },
 //                onDec = { _ -> },
 //                onRemoveLine = { _, _ -> },
-                onPlaceOrder = {
-                    // If you also allow “Place Order” here, you can jump to PayEntry again
-                    navController.navigate(Routes.PayEntry)
+                navigateToWebPage = {url->
+                    Log.d("Aaaaaaaaaaaa",url)
                 }
             )
         }

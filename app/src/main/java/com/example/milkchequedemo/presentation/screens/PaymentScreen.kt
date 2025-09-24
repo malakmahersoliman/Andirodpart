@@ -34,7 +34,7 @@ data class PayerVM(
 
 data class PaymentUiState(
     val title: String = "Payment",
-    val tableLabel: String = "Table #5",
+    val tableLabel: String = "Table #4",
     val mode: PayMode = PayMode.Individually,
     val payers: List<PayerVM> = emptyList(),
     val grandTotalText: String = "0.00 L.E."
@@ -57,12 +57,22 @@ fun PaymentScreen(
             CenterAlignedTopAppBar(
                 title = {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(state.title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-                        Text(state.tableLabel, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                        Text(
+                            state.title,
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            state.tableLabel,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.Gray
+                        )
                     }
                 },
                 navigationIcon = {
-                    IconButton(onClick = onBack) { Icon(Icons.Filled.ArrowBack, contentDescription = "Back") }
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
+                    }
                 }
             )
         },
@@ -71,15 +81,37 @@ fun PaymentScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(Color(0xFFEFF7F2))
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                        .padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Total", color = Color(0xFF0E7A4E), fontWeight = FontWeight.SemiBold)
-                    Spacer(Modifier.weight(1f))
-                    Text(state.grandTotalText, color = Color(0xFF0E7A4E), fontWeight = FontWeight.Bold)
+                    // Total pill
+                    Surface(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(16.dp)),
+                        color = Color(0xFFEFF7F2)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("Total", color = Color(0xFF0E7A4E), fontWeight = FontWeight.SemiBold)
+                            Spacer(Modifier.weight(1f))
+                            Text(
+                                state.grandTotalText,
+                                color = Color(0xFF0E7A4E),
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+
+                    // Pay button only in "All" mode
+                    if (state.mode == PayMode.All) {
+                        Spacer(Modifier.width(12.dp))
+                        PayMenuButton(onPay = onPayAll)
+                    }
                 }
             }
         }
@@ -89,16 +121,16 @@ fun PaymentScreen(
                 .fillMaxSize()
                 .padding(inner)
         ) {
-            SegmentedTwoOption(
-                left = "Individually",
-                right = "All",
-                selectedLeft = state.mode == PayMode.Individually,
-                onLeft = { onModeChange(PayMode.Individually) },
-                onRight = { onModeChange(PayMode.All) },
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .padding(top = 8.dp, bottom = 12.dp)
-            )
+//            SegmentedTwoOption(
+//                left = "Individually",
+//                right = "All",
+//                selectedLeft = state.mode == PayMode.Individually,
+//                onLeft = { onModeChange(PayMode.Individually) },
+//                onRight = { onModeChange(PayMode.All) },
+//                modifier = Modifier
+//                    .padding(horizontal = 16.dp)
+//                    .padding(top = 8.dp, bottom = 12.dp)
+//            )
 
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
@@ -112,14 +144,12 @@ fun PaymentScreen(
                         )
                     }
                 } else {
-                    // All mode: one consolidated card
-                    item {
-                        AllPayCard(
-                            grandTotal = state.grandTotalText,
-                            onPay = onPayAll,
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                        )
-                    }
+                    // All mode: no extra pay button in list; bottom bar handles Pay.
+                    item { Spacer(Modifier.height(8.dp)) }
+                    // If you want a summary card without a button, you can render it here.
+                    // item {
+                    //     AllSummaryCard(grandTotal = state.grandTotalText)
+                    // }
                 }
             }
         }
@@ -228,6 +258,7 @@ private fun AllPayCard(
     onPay: (PayMethod) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // Kept for reference; not used when Pay button is in bottom bar.
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
@@ -296,8 +327,8 @@ private fun PayMenuButton(
 @Composable
 private fun PaymentPreview() {
     val fake = PaymentUiState(
-        tableLabel = "Table #5",
-        mode = PayMode.Individually,
+        tableLabel = "Table #4",
+        mode = PayMode.All, // set to All so the Pay button shows in preview
         payers = listOf(
             PayerVM("p1", "Malak", "590.99 L.E."),
             PayerVM("p2", "Rola", "368.99 L.E."),

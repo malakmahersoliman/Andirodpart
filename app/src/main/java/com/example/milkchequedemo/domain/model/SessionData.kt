@@ -4,5 +4,6 @@ object SessionData {
     var token: String?=null
     var name: String?=null
     var sessionId:String?=null
+    var email:String?=null
     var customerId:Int?=null
 }

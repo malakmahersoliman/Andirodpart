@@ -37,4 +37,10 @@ interface StoreApi {
         @Query("sessionId") storeId: String
     ): Response<List<AllOrdersResponse>>
 
+    @POST("payments/pay")
+    suspend fun pay(
+        @Query("amountCents") amountCents: Int,
+        @Query("merchantOrderId") merchantOrderId: String,
+        @Query("email") email: String
+    ): Response<String>
 }

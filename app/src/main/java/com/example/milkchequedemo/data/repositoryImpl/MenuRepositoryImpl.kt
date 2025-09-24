@@ -78,4 +78,30 @@ class MenuRepositoryImpl @Inject constructor(
             )
         }
     }
+
+    override suspend fun pay(
+        amountCents: Int,
+        merchantOrderId: String,
+        email: String
+    ): ResponseWrapper<String> {
+        return try {
+            val resp = remote.pay(
+                amountCents = amountCents, merchantOrderId = merchantOrderId, email = email
+            )
+            if (resp.isSuccessful) {
+                val body = resp.body()
+                Success(body)
+            } else {
+                Error(
+                    message = resp.errorBody()?.string().orEmpty().ifBlank { resp.message() },
+                    code = resp.code()
+                )
+            }
+        } catch (e: Exception) {
+            Error(
+                message = e.message ?: "Unknown error",
+                code = -1
+            )
+        }
+    }
 }

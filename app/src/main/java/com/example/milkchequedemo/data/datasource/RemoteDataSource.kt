@@ -8,6 +8,7 @@ import com.example.milkchequedemo.data.dto.SessionResponseDto
 import com.example.milkchequedemo.data.dto.StoreInfoResponseDto
 import com.example.milkchequedemo.domain.model.Session
 import retrofit2.Response
+import retrofit2.http.Query
 
 interface RemoteDataSource {
     suspend fun getStoreInfo(
@@ -20,6 +21,7 @@ interface RemoteDataSource {
     suspend fun initSession(session: SessionRequestDto): Response<SessionResponseDto>
 
     suspend fun getAllOrders(sessionId:String): Response<List<AllOrdersResponse>>
+    suspend fun pay(amountCents: Int,merchantOrderId: String, email: String): Response<String>
 
 
 }

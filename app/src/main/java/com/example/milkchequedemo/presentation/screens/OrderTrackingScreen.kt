@@ -16,7 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -42,7 +43,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -53,7 +53,6 @@ import com.example.milkchequedemo.domain.model.SessionData
 import com.example.milkchequedemo.presentation.components.ReusableButton
 import com.example.milkchequedemo.presentation.viewmodel.OrderTrackingViewmodel
 import com.example.milkchequedemo.ui.theme.MexicanRed
-import com.example.milkchequedemo.utils.calculateTotals
 
 /* ---------- UI State models (VM-friendly) ---------- */
 data class OrderTrackingUiState(
@@ -61,6 +60,7 @@ data class OrderTrackingUiState(
     val customers: List<AllOrdersResponse> = emptyList(),
     val isLoading: Boolean=false,
     val error: String?=null,
+    val url: String?=null
 )
 data class CustomerOrderVM(
     val id: String,
@@ -94,14 +94,14 @@ fun OrderTrackingScreen(
     onInc: (item:OrderLineVM?) -> Unit = {  },
     onDec: (item:OrderLineVM?) -> Unit = { },
     onRemoveLine: (customerId: String, lineId: String) -> Unit = { _, _ -> },
-    onPlaceOrder: () -> Unit = {}
-
+    navigateToWebPage:(String)-> Unit
 ) {
-
-
     val viewmodel = hiltViewModel<OrderTrackingViewmodel>()
     val state by viewmodel.state.collectAsState()
 
+    if(state.url!=null){
+        navigateToWebPage(state.url!!)
+    }
     if (state.isLoading) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -157,7 +157,9 @@ fun OrderTrackingScreen(
                     Spacer(Modifier.height(12.dp))
                     ReusableButton(
                         text = "Order",
-                        onClick = onPlaceOrder,
+                        onClick = {
+                            viewmodel.pay()
+                        },
                         isLoading = state.isLoading,
                         height = 52.dp,
                         shape = RoundedCornerShape(20.dp)
@@ -175,8 +177,13 @@ fun OrderTrackingScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(bottom = 140.dp)
                 ) {
-                    items(state.customers) { customer ->
+                    itemsIndexed(state.customers) { index,customer ->
                         CustomerCard(
+                            containCheck = true,
+                            isSelected = customer.isCustomerSelected,
+                            onSelect = {isSelected->
+                                viewmodel.updateCustomer(index, isSelected =isSelected )
+                            },
                             customer = customer,
                             onToggle = { checked ->
                                 onToggleCustomer(
@@ -192,7 +199,8 @@ fun OrderTrackingScreen(
                                     customer.customerId.toString(),
                                     ""
                                 )
-                            }
+                            },
+
                         )
                     }
                 }
@@ -211,7 +219,10 @@ fun CustomerCard(
     onDec: (item:OrderLineVM) -> Unit,
     onRemove: (item:OrderLineVM) -> Unit,
     modifier: Modifier = Modifier,
-    containEdit: Boolean=false
+    containEdit: Boolean=false,
+    isSelected: Boolean=false,
+    onSelect:(Boolean)->Unit={},
+    containCheck:Boolean=false
 ) {
     Surface(
         modifier = modifier
@@ -230,6 +241,14 @@ fun CustomerCard(
                     style = MaterialTheme.typography.titleMedium.copy(color = MexicanRed, fontWeight = FontWeight.SemiBold)
                 )
                 Spacer(Modifier.weight(1f))
+
+                if(containCheck) {
+                    Checkbox(
+                        checked = isSelected,
+                        onCheckedChange = { value-> onSelect(value) },
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
 //                TextButton(onClick = onSeeAll, contentPadding = PaddingValues(0.dp)) {
 //                    Text("See All", fontSize = 12.sp)
 //                }

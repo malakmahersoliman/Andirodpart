@@ -26,4 +26,11 @@ class RemoteDataSourceImpl @Inject constructor(
 
     override suspend fun getAllOrders(sessionId: String): Response<List<AllOrdersResponse>>
     = storeApi.getAllOrders(sessionId)
+
+    override suspend fun pay(
+        amountCents: Int,
+        merchantOrderId: String,
+        email: String
+    ): Response<String> = storeApi.pay(amountCents, merchantOrderId, email)
+
 }

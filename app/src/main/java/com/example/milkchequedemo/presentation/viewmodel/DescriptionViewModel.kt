@@ -82,6 +82,7 @@ class DescriptionViewModel @Inject constructor(
                 SessionData.sessionId = item.sessionId.toString()
                 SessionData.customerId = item.customerId
                 SessionData.token=item.token
+                SessionData.email=mail
                 _session.value=item
             }
             is ResponseWrapper.Error -> {
