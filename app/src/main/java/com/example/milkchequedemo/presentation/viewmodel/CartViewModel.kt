@@ -5,7 +5,11 @@ import androidx.lifecycle.viewModelScope
 import com.example.milkchequedemo.data.config.AppConfig
 import com.example.milkchequedemo.domain.model.CartModel
 import com.example.milkchequedemo.domain.model.MyCart
+import com.example.milkchequedemo.domain.model.Session
+import com.example.milkchequedemo.domain.model.SessionData
+import com.example.milkchequedemo.domain.usecase.CustomerOrderUseCase
 import com.example.milkchequedemo.utils.CalculationUtils
+import com.example.milkchequedemo.utils.ResponseWrapper
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,7 +18,9 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class CartViewModel @Inject constructor() : ViewModel() {
+class CartViewModel @Inject constructor(
+    private val customerOrderUseCase: CustomerOrderUseCase
+) : ViewModel() {
     
     private val _uiState = MutableStateFlow(CartUiState())
     val uiState: StateFlow<CartUiState> = _uiState.asStateFlow()
@@ -75,13 +81,36 @@ class CartViewModel @Inject constructor() : ViewModel() {
         }
     }
     
-    fun placeOrder() {
+    fun placeOrder(
+        customerId: String,
+        storeId: String,
+    ) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isPlacingOrder = true)
-            // TODO: Implement actual order placement logic
-            // For now, just simulate
-            kotlinx.coroutines.delay(2000)
-            _uiState.value = _uiState.value.copy(isPlacingOrder = false)
+
+            val mp=mutableMapOf<String,String>()
+            MyCart.cart.forEach {
+                mp.put(it.id.toString() ,it.qnt.toString())
+            }
+
+
+            when (val r=customerOrderUseCase(
+                customerId = customerId,
+                orderItems =mp,
+                sessionId = SessionData.sessionId!!,
+                storeId = storeId,
+                token = SessionData.token!!
+            )) {
+                is ResponseWrapper.Success -> {
+                    _uiState.value = _uiState.value.copy(isPlacingOrder = false, orderId = r.data)
+                }
+                is ResponseWrapper.Error -> {
+                    // TODO: expose error to UI if you want
+                }
+                else -> {
+
+                }
+            }
         }
     }
 }
@@ -100,5 +129,6 @@ data class CartUiState(
     ),
     val isLoading: Boolean = true,
     val isPlacingOrder: Boolean = false,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val orderId:Int? = null
 )

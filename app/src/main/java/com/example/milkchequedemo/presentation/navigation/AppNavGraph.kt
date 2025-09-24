@@ -136,24 +136,22 @@ fun AppNavGraph(navController: NavHostController) {
             // TODO: replace with real state from your VM
 
             OrderTrackingScreen(
-//                state = demo,
                 onBack = { navController.popBackStack() },
-//                onToggleCustomer = { _, _ -> },
-//                onSeeAll = { _ -> },
-//                onInc = { _ -> },
-//                onDec = { _ -> },
-//                onRemoveLine = { _, _ -> },
                 navigateToWebPage = {url->
                     Log.d("Aaaaaaaaaaaa",url)
                 }
             )
         }
         composable(route = Routes.Cart) {
+            //todo pass as args
             CartScreen(
-                order = {
+                onOrderSuccess = { orderId->
+                    //todo pass it as parameter
                     navController.navigate(Routes.Order)
                 },
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                customerId = customerId,
+                storeId = storeId,
             )
         }
         // presentation/navigation/AppNavGraph.kt

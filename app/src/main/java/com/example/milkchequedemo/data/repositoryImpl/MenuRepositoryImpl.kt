@@ -2,8 +2,9 @@ package com.example.milkchequedemo.data.repositoryImpl
 
 import com.example.milkchequedemo.data.datasource.RemoteDataSource
 import com.example.milkchequedemo.data.dto.AllOrdersResponse
+import com.example.milkchequedemo.data.dto.CustomerOrderRequestDto
+import com.example.milkchequedemo.data.dto.CustomerOrderResponseDto
 import com.example.milkchequedemo.data.mapper.toDomain
-import com.example.milkchequedemo.domain.model.CategoryResponse
 import com.example.milkchequedemo.domain.model.MenuItem
 import com.example.milkchequedemo.domain.repository.MenuRepository
 import com.example.milkchequedemo.utils.ResponseWrapper
@@ -65,6 +66,40 @@ class MenuRepositoryImpl @Inject constructor(
             if (resp.isSuccessful) {
                 val body = resp.body()
                 Success(body)
+            } else {
+                Error(
+                    message = resp.errorBody()?.string().orEmpty().ifBlank { resp.message() },
+                    code = resp.code()
+                )
+            }
+        } catch (e: Exception) {
+            Error(
+                message = e.message ?: "Unknown error",
+                code = -1
+            )
+        }
+    }
+
+    override suspend fun customerOrder(
+        customerId: String,
+        orderItems: Map<String, String>,
+        sessionId: String,
+        storeId: String,
+        token: String
+    ): ResponseWrapper<Int> {
+        return try {
+            val resp = remote.customerOrder(
+                CustomerOrderRequestDto(
+                    customerId = customerId,
+                    orderItems = orderItems,
+                    sessionId = sessionId,
+                    storeId = storeId,
+                    token = token
+                )
+            )
+            if (resp.isSuccessful) {
+                val body = resp.body()
+                Success(body!!.orderId)
             } else {
                 Error(
                     message = resp.errorBody()?.string().orEmpty().ifBlank { resp.message() },

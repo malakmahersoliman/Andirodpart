@@ -1,8 +1,8 @@
-package com.example.milkchequedemo.domain.model
+package com.example.milkchequedemo.data.dto
 
-data class CustomerOrderPost(
+data class CustomerOrderRequestDto(
     val customerId: String,
-//    val orderItems: ,
+    val orderItems:Map<String, String> ,//id, qnt
     val sessionId: String,
     val storeId: String,
     val token: String

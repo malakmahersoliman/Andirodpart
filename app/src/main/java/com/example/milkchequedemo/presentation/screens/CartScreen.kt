@@ -39,9 +39,11 @@ import com.example.milkchequedemo.presentation.viewmodel.CartViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CartScreen(
-    order: () -> Unit,
+    onOrderSuccess: (String) -> Unit,
     onBack: () -> Unit,
-    viewModel: CartViewModel = hiltViewModel()
+    viewModel: CartViewModel = hiltViewModel(),
+    customerId: String,
+    storeId: String
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -49,6 +51,10 @@ fun CartScreen(
     if (uiState.isLoading) {
         LoadingIndicator(message = "Loading cart...")
         return
+    }
+
+    if(uiState.orderId!=null){
+        onOrderSuccess(uiState.orderId.toString())
     }
 
     // Show error state
@@ -90,8 +96,10 @@ fun CartScreen(
                     ReusableButton(
                         text = "Order (${uiState.cartItems.sumOf { it.qnt }} items)",
                         onClick = {
-                            viewModel.placeOrder()
-                            order()
+                            viewModel.placeOrder(
+                                customerId = customerId,
+                                storeId = storeId
+                            )
                         },
                         isLoading = uiState.isPlacingOrder
                     )

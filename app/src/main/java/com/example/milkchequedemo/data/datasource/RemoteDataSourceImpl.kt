@@ -1,6 +1,8 @@
 package com.example.milkchequedemo.data.datasource
 
 import com.example.milkchequedemo.data.dto.AllOrdersResponse
+import com.example.milkchequedemo.data.dto.CustomerOrderRequestDto
+import com.example.milkchequedemo.data.dto.CustomerOrderResponseDto
 import com.example.milkchequedemo.data.dto.MenuItemDto
 import com.example.milkchequedemo.data.dto.SessionRequestDto
 import com.example.milkchequedemo.data.dto.SessionResponseDto
@@ -23,6 +25,9 @@ class RemoteDataSourceImpl @Inject constructor(
     )
     override suspend fun initSession(session: SessionRequestDto
     ): Response<SessionResponseDto> = storeApi.initSession(session)
+
+    override suspend fun customerOrder(customerOrderRequestDto: CustomerOrderRequestDto): Response<CustomerOrderResponseDto>
+    = storeApi.sessionOrder(customerOrderRequestDto)
 
     override suspend fun getAllOrders(sessionId: String): Response<List<AllOrdersResponse>>
     = storeApi.getAllOrders(sessionId)

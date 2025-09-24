@@ -2,6 +2,8 @@
 package com.example.milkchequedemo.data.service
 
 import com.example.milkchequedemo.data.dto.AllOrdersResponse
+import com.example.milkchequedemo.data.dto.CustomerOrderRequestDto
+import com.example.milkchequedemo.data.dto.CustomerOrderResponseDto
 import com.example.milkchequedemo.data.dto.MenuItemDto
 import com.example.milkchequedemo.data.dto.SessionRequestDto
 import com.example.milkchequedemo.data.dto.SessionResponseDto
@@ -31,6 +33,12 @@ interface StoreApi {
     suspend fun initSession(
         @Body sessionRequestDto: SessionRequestDto
     ): Response<SessionResponseDto>
+
+
+    @POST("session/order")
+    suspend fun sessionOrder(
+        @Body customerOrderRequestDto: CustomerOrderRequestDto
+    ): Response<CustomerOrderResponseDto>
 
     @GET("session/allOrders")
     suspend fun getAllOrders(

@@ -2,6 +2,8 @@ package com.example.milkchequedemo.data.datasource
 
 
 import com.example.milkchequedemo.data.dto.AllOrdersResponse
+import com.example.milkchequedemo.data.dto.CustomerOrderRequestDto
+import com.example.milkchequedemo.data.dto.CustomerOrderResponseDto
 import com.example.milkchequedemo.data.dto.MenuItemDto
 import com.example.milkchequedemo.data.dto.SessionRequestDto
 import com.example.milkchequedemo.data.dto.SessionResponseDto
@@ -19,6 +21,8 @@ interface RemoteDataSource {
     suspend fun getMenu(storeId: Int,
                         tableId: Int): Response<List<MenuItemDto>>
     suspend fun initSession(session: SessionRequestDto): Response<SessionResponseDto>
+
+    suspend fun customerOrder(customerOrderRequestDto: CustomerOrderRequestDto): Response<CustomerOrderResponseDto>
 
     suspend fun getAllOrders(sessionId:String): Response<List<AllOrdersResponse>>
     suspend fun pay(amountCents: Int,merchantOrderId: String, email: String): Response<String>
