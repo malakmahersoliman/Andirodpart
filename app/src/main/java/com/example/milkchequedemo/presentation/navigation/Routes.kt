@@ -1,5 +1,6 @@
 package com.example.milkchequedemo.presentation.navigation
 
+
 object Routes {
     const val Scan = "scanS"
 
@@ -12,15 +13,14 @@ object Routes {
     const val Description = "description/{item}/{storeId}/{tableId}"
     fun description(item: String, storeId: Int, tableId: Int) = "description/$item/$storeId/$tableId"
 
-    const val Cart = "cart"
 
-    // Shows the order tracking list
+    const val Cart = "cart/{storeId}/{customerId}"
+    fun cart(storeId: Int, customerId: Int) = "cart/$storeId/$customerId"
+
     const val Order = "order"
+//    fun order(orderId: Long) = "order/$orderId"
 
-    // The “entry to payment” screen
+
     const val PayEntry = "pay_entry"
-
-    // The actual payment screen
     const val Payment = "payment"
 }
-

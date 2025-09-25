@@ -1,4 +1,3 @@
-// presentation/navigation/AppNavGraph.kt
 package com.example.milkchequedemo.presentation.navigation
 
 import android.util.Log
@@ -39,7 +38,6 @@ fun AppNavGraph(navController: NavHostController) {
         // 1) Scan → emits a route; navigate to Welcome with IDs
         composable(Routes.Scan) {
             ScanOrderScreen { route -> navController.navigate(route) }
-            // Your Scan screen should call nav with Routes.welcome(storeId, tableId)
         }
 
         // 2) Welcome → Continue -> Menu(storeId)
@@ -65,7 +63,7 @@ fun AppNavGraph(navController: NavHostController) {
             )
         }
 
-        // 3) Menu -> shows list from API; tap → Description
+
         composable(
             route = Routes.Menu,
             arguments = listOf(navArgument("storeId") { type = NavType.IntType },
@@ -88,7 +86,7 @@ fun AppNavGraph(navController: NavHostController) {
                 )
         }
 
-        // 4) Description (product details)
+
         composable(
             route = Routes.Description,
             arguments = listOf(
@@ -131,9 +129,8 @@ fun AppNavGraph(navController: NavHostController) {
                 )
             }
         }
-// presentation/navigation/AppNavGraph.kt
+
         composable(route = Routes.Order) {
-            // TODO: replace with real state from your VM
 
             OrderTrackingScreen(
                 onBack = { navController.popBackStack() },
@@ -142,19 +139,26 @@ fun AppNavGraph(navController: NavHostController) {
                 }
             )
         }
-        composable(route = Routes.Cart) {
-            //todo pass as args
+        composable(
+            route = Routes.Cart,
+            arguments = listOf(
+                navArgument("storeId") { type = NavType.StringType},
+                navArgument("customerId") { type = NavType.StringType}
+            )
+        ) { entry ->
+            val storeId = entry.arguments!!.getString("storeId")
+            val customerId = entry.arguments!!.getString("customerId")
+
             CartScreen(
-                onOrderSuccess = { orderId->
-                    //todo pass it as parameter
+                onOrderSuccess = { orderId ->
                     navController.navigate(Routes.Order)
                 },
                 onBack = { navController.popBackStack() },
-                customerId = customerId,
-                storeId = storeId,
+                customerId = customerId.toString(),
+                storeId = storeId.toString(),
             )
         }
-        // presentation/navigation/AppNavGraph.kt
+
         composable(route = Routes.PayEntry) {
             EntrypointtoPayScreen(
                 onEditClick = {
@@ -173,7 +177,7 @@ fun AppNavGraph(navController: NavHostController) {
                 }
             )
         }
-        // presentation/navigation/AppNavGraph.kt
+
         composable(route = Routes.Payment) {
             // TODO: replace with real data (e.g., from shared VM) once ready
             val fake = PaymentUiState(
