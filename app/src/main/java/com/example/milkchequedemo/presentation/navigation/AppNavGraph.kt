@@ -80,7 +80,14 @@ fun AppNavGraph(navController: NavHostController) {
                     ), storeId = storeId, tableId = tableId
                     ))
                 },
-                onViewCart = {  navController.navigate(Routes.Cart)  },
+                onViewCart = {
+                    navController.navigate(
+                        Routes.cart(
+                            storeId = storeId,
+                            customerId = SessionData.customerId ?: return@MenuRoute
+                        )
+                    )
+                },
                 storeId = storeId,
                 tableId = tableId,
                 )
@@ -142,13 +149,12 @@ fun AppNavGraph(navController: NavHostController) {
         composable(
             route = Routes.Cart,
             arguments = listOf(
-                navArgument("storeId") { type = NavType.StringType},
-                navArgument("customerId") { type = NavType.StringType}
+                navArgument("storeId") { type = NavType.IntType },
+                navArgument("customerId") { type = NavType.IntType }
             )
         ) { entry ->
-            val storeId = entry.arguments!!.getString("storeId")
-            val customerId = entry.arguments!!.getString("customerId")
-
+            val storeId = entry.arguments?.getInt("storeId") ?: return@composable
+            val customerId = entry.arguments?.getInt("customerId") ?: return@composable
             CartScreen(
                 onOrderSuccess = { orderId ->
                     navController.navigate(Routes.Order)
