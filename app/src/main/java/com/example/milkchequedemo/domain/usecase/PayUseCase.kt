@@ -9,7 +9,6 @@ class PayUseCase @Inject constructor(
     suspend operator fun invoke(
         amountCents: Int,
         merchantOrderId: String,
-        email: String
-    ) =
-        repo.pay(amountCents = amountCents, merchantOrderId = merchantOrderId, email = email)
+        otherMerchantsOrderId: List<Int> = emptyList()
+    ) = repo.pay(amountCents, merchantOrderId, otherMerchantsOrderId)
 }

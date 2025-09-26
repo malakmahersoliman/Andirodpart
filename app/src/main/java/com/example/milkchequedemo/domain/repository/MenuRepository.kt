@@ -1,4 +1,3 @@
-// domain/repository/MenuRepository.kt
 package com.example.milkchequedemo.domain.repository
 
 
@@ -25,6 +24,6 @@ interface MenuRepository {
     suspend fun pay(
         amountCents: Int,
         merchantOrderId: String,
-        email: String
+        otherMerchantsOrderId: List<Int> = emptyList()
     ): ResponseWrapper<String>
 }

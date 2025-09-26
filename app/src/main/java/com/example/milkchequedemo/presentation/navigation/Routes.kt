@@ -17,8 +17,8 @@ object Routes {
     const val Cart = "cart/{storeId}/{customerId}"
     fun cart(storeId: Int, customerId: Int) = "cart/$storeId/$customerId"
 
-    const val Order = "order"
-//    fun order(orderId: Long) = "order/$orderId"
+    const val Order = "order/{orderId}"
+    fun order(orderId: Int) = "order/$orderId"
 
 
     const val PayEntry = "pay_entry"

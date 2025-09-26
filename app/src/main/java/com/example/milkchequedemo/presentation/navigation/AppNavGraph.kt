@@ -137,15 +137,18 @@ fun AppNavGraph(navController: NavHostController) {
             }
         }
 
-        composable(route = Routes.Order) {
-
+        composable(
+            route = Routes.Order,
+            arguments = listOf(navArgument("orderId") { type = NavType.IntType })
+        ) { entry ->
+            val orderId = entry.arguments?.getInt("orderId")
+            SessionData.orderId = orderId
             OrderTrackingScreen(
                 onBack = { navController.popBackStack() },
-                navigateToWebPage = {url->
-                    Log.d("Aaaaaaaaaaaa",url)
-                }
+                navigateToWebPage = { url -> Log.d("PaymentURL", url) }
             )
         }
+
         composable(
             route = Routes.Cart,
             arguments = listOf(
@@ -155,9 +158,11 @@ fun AppNavGraph(navController: NavHostController) {
         ) { entry ->
             val storeId = entry.arguments?.getInt("storeId") ?: return@composable
             val customerId = entry.arguments?.getInt("customerId") ?: return@composable
+
             CartScreen(
-                onOrderSuccess = { orderId ->
-                    navController.navigate(Routes.Order)
+                onOrderSuccess = { orderId: String ->
+                    SessionData.orderId = orderId.toIntOrNull()
+                    navController.navigate(Routes.order(orderId.toInt()))
                 },
                 onBack = { navController.popBackStack() },
                 customerId = customerId.toString(),
@@ -184,26 +189,27 @@ fun AppNavGraph(navController: NavHostController) {
             )
         }
 
-        composable(route = Routes.Payment) {
-            // TODO: replace with real data (e.g., from shared VM) once ready
-            val fake = PaymentUiState(
-                tableLabel = "Table #5",
-                mode = PayMode.Individually,
-                payers = listOf(
-                    PayerVM("p1", "Malak", "590.99 L.E."),
-                    PayerVM("p2", "Rola", "368.99 L.E.")
-                ),
-                grandTotalText = "959.98 L.E."
-            )
-
-            PaymentScreen(
-                state = fake,
-                onBack = { navController.popBackStack() },   // back to Entry
-                onModeChange = { /* update VM later */ },
-                onPayPerson = { _, _ -> /* handle later */ },
-                onPayAll = { /* handle later */ }
-            )
-        }
+//removed
+//        composable(route = Routes.Payment) {
+//            // TODO: replace with real data (e.g., from shared VM) once ready
+//            val fake = PaymentUiState(
+//                tableLabel = "Table #5",
+//                mode = PayMode.Individually,
+//                payers = listOf(
+//                    PayerVM("p1", "Malak", "590.99 L.E."),
+//                    PayerVM("p2", "Rola", "368.99 L.E.")
+//                ),
+//                grandTotalText = "959.98 L.E."
+//            )
+//
+//            PaymentScreen(
+//                state = fake,
+//                onBack = { navController.popBackStack() },   // back to Entry
+//                onModeChange = { /* update VM later */ },
+//                onPayPerson = { _, _ -> /* handle later */ },
+//                onPayAll = { /* handle later */ }
+//            )
+//        }
 
     }
 }

@@ -117,11 +117,11 @@ class MenuRepositoryImpl @Inject constructor(
     override suspend fun pay(
         amountCents: Int,
         merchantOrderId: String,
-        email: String
+        otherMerchantsOrderId: List<Int>
     ): ResponseWrapper<String> {
         return try {
             val resp = remote.pay(
-                amountCents = amountCents, merchantOrderId = merchantOrderId, email = email
+                amountCents = amountCents, merchantOrderId = merchantOrderId, otherMerchantsOrderId = otherMerchantsOrderId
             )
             if (resp.isSuccessful) {
                 val body = resp.body()

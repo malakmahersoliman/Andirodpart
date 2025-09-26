@@ -5,6 +5,7 @@ import com.example.milkchequedemo.data.dto.AllOrdersResponse
 import com.example.milkchequedemo.data.dto.CustomerOrderRequestDto
 import com.example.milkchequedemo.data.dto.CustomerOrderResponseDto
 import com.example.milkchequedemo.data.dto.MenuItemDto
+import com.example.milkchequedemo.data.dto.PaymentRequestDto
 import com.example.milkchequedemo.data.dto.SessionRequestDto
 import com.example.milkchequedemo.data.dto.SessionResponseDto
 import com.example.milkchequedemo.data.dto.StoreInfoResponseDto
@@ -47,8 +48,6 @@ interface StoreApi {
 
     @POST("payments/pay")
     suspend fun pay(
-        @Query("amountCents") amountCents: Int,
-        @Query("merchantOrderId") merchantOrderId: String,
-        @Query("email") email: String
+        @Body body: PaymentRequestDto
     ): Response<String>
 }

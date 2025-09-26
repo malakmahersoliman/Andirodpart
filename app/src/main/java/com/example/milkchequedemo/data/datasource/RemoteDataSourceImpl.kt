@@ -4,6 +4,7 @@ import com.example.milkchequedemo.data.dto.AllOrdersResponse
 import com.example.milkchequedemo.data.dto.CustomerOrderRequestDto
 import com.example.milkchequedemo.data.dto.CustomerOrderResponseDto
 import com.example.milkchequedemo.data.dto.MenuItemDto
+import com.example.milkchequedemo.data.dto.PaymentRequestDto
 import com.example.milkchequedemo.data.dto.SessionRequestDto
 import com.example.milkchequedemo.data.dto.SessionResponseDto
 import com.example.milkchequedemo.data.dto.StoreInfoResponseDto
@@ -31,11 +32,16 @@ class RemoteDataSourceImpl @Inject constructor(
 
     override suspend fun getAllOrders(sessionId: String): Response<List<AllOrdersResponse>>
     = storeApi.getAllOrders(sessionId)
-
     override suspend fun pay(
         amountCents: Int,
         merchantOrderId: String,
-        email: String
-    ): Response<String> = storeApi.pay(amountCents, merchantOrderId, email)
-
+        otherMerchantsOrderId: List<Int>?
+    ): Response<String> {
+        val body = PaymentRequestDto(
+            amountCents = amountCents.toString(),
+            merchantOrderId = merchantOrderId,
+            otherMerchantsOrderId = otherMerchantsOrderId ?: emptyList() // sends []
+        )
+        return storeApi.pay(body)
+    }
 }

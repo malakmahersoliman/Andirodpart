@@ -25,7 +25,10 @@ interface RemoteDataSource {
     suspend fun customerOrder(customerOrderRequestDto: CustomerOrderRequestDto): Response<CustomerOrderResponseDto>
 
     suspend fun getAllOrders(sessionId:String): Response<List<AllOrdersResponse>>
-    suspend fun pay(amountCents: Int,merchantOrderId: String, email: String): Response<String>
-
+    suspend fun pay(
+        amountCents: Int,
+        merchantOrderId: String,
+        otherMerchantsOrderId: List<Int>? = null
+    ): Response<String>
 
 }

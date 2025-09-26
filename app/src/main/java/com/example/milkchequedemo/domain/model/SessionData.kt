@@ -6,4 +6,5 @@ object SessionData {
     var sessionId:String?=null
     var email:String?=null
     var customerId:Int?=null
+    var orderId: Int? = null
 }

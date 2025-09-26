@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlin.math.round
 
 @HiltViewModel
 class OrderTrackingViewmodel @Inject constructor(
@@ -38,42 +37,44 @@ class OrderTrackingViewmodel @Inject constructor(
             )
         }
     }
-    fun pay(){
-        viewModelScope.launch {
-            val total = round(
-                _state.value.customers.filter {
-                    it.isCustomerSelected  //true
-                }.sumOf { it ->
-                    it.orderItems.sumOf { order ->
-                        order.price * order.quantity
-                    }
-                }
-            ) * 100
-            payUseCase(
-                amountCents = total.toInt(),
-                merchantOrderId = "1",
-                email = SessionData.email!!
-            )
 
-            when (val res = payUseCase(
-                amountCents = total.toInt(),
-                merchantOrderId = "merchantOrderId",
-                email = SessionData.email!!
-            )) {
-                is ResponseWrapper.Success -> {
-                    _state.value = _state.value.copy(url = res.data!!,isLoading = false,error=null)
-                }
-                is ResponseWrapper.Error -> {
-                    _state.value = _state.value.copy(error = res.message,isLoading = false)
-                }
-                is ResponseWrapper.Loading ->{
-                    _state.value = _state.value.copy(isLoading = true)
-                }
-                ResponseWrapper.Idle ->{
-                    _state.value = _state.value.copy(error = null,isLoading = false)
-                }
+    fun pay() {
+        viewModelScope.launch {
+            val orderId = SessionData.orderId?.toString()
+            if (orderId == null) {
+                _state.value = _state.value.copy(error = "Order ID is missing.", isLoading = false)
+                return@launch
             }
 
+            val totalSelected = _state.value.customers
+                .filter { it.isCustomerSelected && it.orderItems.isNotEmpty() }
+                .sumOf { c -> c.orderItems.sumOf { it.price * it.quantity } }
+
+            val amountCents = kotlin.math.round(totalSelected * 100).toInt()
+
+            _state.value = _state.value.copy(isLoading = true, error = null)
+
+
+            val others = emptyList<Int>()
+
+            when (val res = payUseCase(
+                amountCents = amountCents,
+                merchantOrderId = orderId,
+                otherMerchantsOrderId = others
+            )) {
+                is ResponseWrapper.Success -> {
+                    _state.value = _state.value.copy(url = res.data.orEmpty(), isLoading = false, error = null)
+                }
+                is ResponseWrapper.Error -> {
+                    _state.value = _state.value.copy(error = res.message, isLoading = false)
+                }
+                is ResponseWrapper.Loading -> {
+                    _state.value = _state.value.copy(isLoading = true)
+                }
+                ResponseWrapper.Idle -> {
+                    _state.value = _state.value.copy(error = null, isLoading = false)
+                }
+            }
         }
     }
     fun load(sessionId: String) = viewModelScope.launch {
