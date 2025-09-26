@@ -54,7 +54,6 @@ class OrderTrackingViewmodel @Inject constructor(
 
             _state.value = _state.value.copy(isLoading = true, error = null)
 
-
             val others = emptyList<Int>()
 
             when (val res = payUseCase(
@@ -63,7 +62,7 @@ class OrderTrackingViewmodel @Inject constructor(
                 otherMerchantsOrderId = others
             )) {
                 is ResponseWrapper.Success -> {
-                    _state.value = _state.value.copy(url = res.data.orEmpty(), isLoading = false, error = null)
+                    _state.value = _state.value.copy(url = res.data.orEmpty(),  isLoading = false, error = null)
                 }
                 is ResponseWrapper.Error -> {
                     _state.value = _state.value.copy(error = res.message, isLoading = false)
@@ -93,5 +92,7 @@ class OrderTrackingViewmodel @Inject constructor(
             }
         }
     }
-
+    fun consumePaymentUrl() {
+        _state.value = _state.value.copy(url = null)
+    }
 }

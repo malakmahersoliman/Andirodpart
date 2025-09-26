@@ -7,6 +7,7 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.converter.scalars.ScalarsConverterFactory
 
 object StoreApiProvider {
     private const val BASE_URL =
@@ -23,7 +24,8 @@ object StoreApiProvider {
     val api: StoreApi by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL) // note trailing slash
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(ScalarsConverterFactory.create()) // <-- handles plain text/URL
+            .addConverterFactory(GsonConverterFactory.create())    // <-- for normal JSON endpoints
             .client(client)
             .build()
             .create(StoreApi::class.java)

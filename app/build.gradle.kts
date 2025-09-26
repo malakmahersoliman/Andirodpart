@@ -82,6 +82,10 @@ dependencies {
 
     // DataStore
     implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.browser)
+
+    implementation(libs.converter.scalars)
+    implementation(libs.converter.gson)
 
 
     // Tests / tooling
@@ -92,9 +96,13 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     implementation(libs.zxing.android.embedded)
 
+    implementation(libs.androidx.browser.v180)
+
 
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+
 
     //hilt
     implementation(libs.hilt.android)

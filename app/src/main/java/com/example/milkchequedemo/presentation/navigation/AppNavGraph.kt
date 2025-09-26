@@ -1,6 +1,5 @@
 package com.example.milkchequedemo.presentation.navigation
 
-import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
@@ -18,15 +17,12 @@ import com.example.milkchequedemo.presentation.menu.MenuRoute
 import com.example.milkchequedemo.presentation.screens.CartScreen
 import com.example.milkchequedemo.presentation.screens.EntrypointtoPayScreen
 import com.example.milkchequedemo.presentation.screens.OrderTrackingScreen
-import com.example.milkchequedemo.presentation.screens.PayMode
-import com.example.milkchequedemo.presentation.screens.PayerVM
-import com.example.milkchequedemo.presentation.screens.PaymentScreen
-import com.example.milkchequedemo.presentation.screens.PaymentUiState
 import com.example.milkchequedemo.presentation.screens.ScanOrderScreen
 import com.example.milkchequedemo.presentation.screens.SessionStartDialog
 import com.example.milkchequedemo.presentation.screens.WelcomeScreen
 import com.example.milkchequedemo.presentation.viewmodel.DescriptionViewModel
 import com.google.gson.Gson
+import openPaymentUrl
 
 object ItemImage{
     var img:String=""
@@ -145,7 +141,9 @@ fun AppNavGraph(navController: NavHostController) {
             SessionData.orderId = orderId
             OrderTrackingScreen(
                 onBack = { navController.popBackStack() },
-                navigateToWebPage = { url -> Log.d("PaymentURL", url) }
+                navigateToWebPage = { url ->
+                    openPaymentUrl(navController.context, url)
+                }
             )
         }
 
@@ -173,7 +171,7 @@ fun AppNavGraph(navController: NavHostController) {
         composable(route = Routes.PayEntry) {
             EntrypointtoPayScreen(
                 onEditClick = {
-                    // Prefer reusing an existing Order screen if it’s already on the stack
+
                     val popped = navController.popBackStack(Routes.Cart, inclusive = false)
                     if (!popped) {
                         navController.navigate(Routes.Cart) {

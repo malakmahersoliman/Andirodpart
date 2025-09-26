@@ -25,7 +25,7 @@ class MenuViewModel @Inject constructor(
     val state: StateFlow<MenuUiState> = _state
 
     private val currencyFmt by lazy {
-        NumberFormat.getCurrencyInstance(Locale("ar","EG"))
+        NumberFormat.getCurrencyInstance(Locale.forLanguageTag("ar-EG"))
     }
 
     fun load(storeId: Int,

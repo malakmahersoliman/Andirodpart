@@ -13,7 +13,9 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.Divider
+import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -158,7 +160,11 @@ fun CartScreen(
                         OrderSummaryRow("Subtotal", uiState.calculations.subtotalText)
                         OrderSummaryRow("Service (${AppConfig.Pricing.DEFAULT_SERVICE_PERCENTAGE}%)", uiState.calculations.serviceText)
                         OrderSummaryRow("Tax (${AppConfig.Pricing.DEFAULT_TAX_PERCENTAGE}%)", uiState.calculations.taxText)
-                        Divider(Modifier.padding(vertical = AppConfig.UI.PADDING_SMALL.dp))
+                        HorizontalDivider(
+                            Modifier.padding(vertical = AppConfig.UI.PADDING_SMALL.dp),
+                            DividerDefaults.Thickness,
+                            DividerDefaults.color
+                        )
                         OrderSummaryRow("Grand Total", uiState.calculations.grandTotalText, emphasize = true)
                     }
                 }
